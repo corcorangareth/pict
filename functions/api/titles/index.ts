@@ -21,7 +21,12 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     `SELECT e.id AS entry_id, e.audience, e.state, e.notify, e.added_at, e.updated_at,
             t.*,
             (SELECT COUNT(*) FROM episodes ep WHERE ep.title_id = t.id) AS ep_total,
-            (SELECT COUNT(*) FROM episodes ep WHERE ep.title_id = t.id AND ep.watched_at IS NOT NULL) AS ep_watched
+            (SELECT COUNT(*) FROM episodes ep WHERE ep.title_id = t.id AND ep.watched_at IS NOT NULL) AS ep_watched,
+            (SELECT MIN(air_date) FROM episodes ep WHERE ep.title_id = t.id AND ep.air_date >= date('now')) AS next_air,
+            (SELECT season || '|' || number FROM episodes ep WHERE ep.title_id = t.id AND ep.air_date >= date('now') ORDER BY air_date LIMIT 1) AS next_air_ep,
+            (SELECT season || '|' || number || '|' || COALESCE(name, '') FROM episodes ep WHERE ep.title_id = t.id AND ep.watched_at IS NULL AND ep.air_date <= date('now') ORDER BY season, number LIMIT 1) AS next_unwatched,
+            (SELECT MIN(release_date) FROM releases r WHERE r.title_id = t.id AND r.release_date >= date('now')) AS next_rel,
+            (SELECT provider FROM releases r WHERE r.title_id = t.id AND r.release_date >= date('now') ORDER BY release_date LIMIT 1) AS next_rel_provider
        FROM entries e
        JOIN titles t ON t.id = e.title_id
        ORDER BY e.updated_at DESC`,
@@ -155,12 +160,34 @@ function mapEntryRow(r: Record<string, unknown>) {
 function mapLibraryRow(r: Record<string, unknown>) {
   const total = Number(r.ep_total ?? 0);
   const watched = Number(r.ep_watched ?? 0);
+  const title = mapTitleRow(r);
+  const network = title.networks[0] ?? null;
+
+  // Soonest future episode (TV) or release (movie) → the Coming Up countdown.
+  let upcoming: { date: string; label: string; where: string | null } | null = null;
+  if (r.media_type === "tv" && r.next_air) {
+    const [s, n] = String(r.next_air_ep ?? "|").split("|");
+    upcoming = { date: String(r.next_air), label: s && n ? `Season ${s}, Episode ${n}` : "New episode", where: network };
+  } else if (r.media_type === "movie" && r.next_rel) {
+    upcoming = { date: String(r.next_rel), label: "New on " + (r.next_rel_provider ?? "streaming"), where: (r.next_rel_provider as string) ?? null };
+  }
+
+  // Next unwatched, already-aired episode → the Keep Going "next episode" label.
+  let nextWatch: { season: number; number: number; name: string | null } | null = null;
+  if (typeof r.next_unwatched === "string") {
+    const [s, n, name] = r.next_unwatched.split("|");
+    nextWatch = { season: Number(s), number: Number(n), name: name || null };
+  }
+
   return {
     entry: {
       id: r.entry_id, title_id: r.id, audience: r.audience, state: r.state,
       notify: !!r.notify, added_at: r.added_at, updated_at: r.updated_at,
     },
-    title: mapTitleRow(r),
+    title,
     progress: r.media_type === "tv" ? { watched, total } : null,
+    upcoming,
+    nextWatch,
+    where: network,
   };
 }

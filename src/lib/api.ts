@@ -13,6 +13,9 @@ export interface LibraryItem {
   entry: Entry;
   title: Title;
   progress: { watched: number; total: number } | null;
+  upcoming: { date: string; label: string; where: string | null } | null;
+  nextWatch: { season: number; number: number; name: string | null } | null;
+  where: string | null;
 }
 
 async function req<T>(url: string, init?: RequestInit): Promise<T> {

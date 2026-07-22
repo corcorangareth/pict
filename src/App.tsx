@@ -3,11 +3,12 @@ import { Search, Plus } from "lucide-react";
 import { Slats } from "@/components/brand/Slats";
 import { TabBar } from "@/components/TabBar";
 import { AddSheet } from "@/components/AddSheet";
+import { Ambience } from "@/components/Ambience";
 import { Home } from "@/screens/Home";
 import { Discover } from "@/screens/Discover";
 import { Calendar } from "@/screens/Calendar";
 import { Settings } from "@/screens/Settings";
-import type { Tab } from "@/types";
+import type { Tab, Palette } from "@/types";
 import "@/styles/global.css";
 
 // A contextual greeting keeps the header editorial (PRD §7). Refined later.
@@ -21,8 +22,9 @@ function greeting(): string {
 export default function App() {
   const [tab, setTab] = useState<Tab>("home");
   const [addOpen, setAddOpen] = useState(false);
-  // Bumped after a successful add so library-reading screens revalidate (Phase 3).
-  const [, setLibraryVersion] = useState(0);
+  const [mood, setMood] = useState<Palette | null>(null);
+  // Bumped after a successful add so library-reading screens revalidate.
+  const [libraryVersion, setLibraryVersion] = useState(0);
 
   return (
     <div
@@ -36,6 +38,8 @@ export default function App() {
         background: "var(--paper)",
       }}
     >
+      <Ambience palette={mood} />
+
       <div style={{ position: "relative", zIndex: 1 }}>
         {/* Header — only on non-Discover tabs in the mockup; kept global for the shell. */}
         <header
@@ -117,7 +121,7 @@ export default function App() {
         </header>
 
         <main>
-          {tab === "home" && <Home />}
+          {tab === "home" && <Home version={libraryVersion} onMood={setMood} />}
           {tab === "discover" && <Discover />}
           {tab === "cal" && <Calendar />}
           {tab === "me" && <Settings />}
