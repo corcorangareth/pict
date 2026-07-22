@@ -11,7 +11,15 @@ import { daysUntil } from "@/lib/countdown";
 import type { LibraryItem } from "@/lib/api";
 import type { Palette } from "@/types";
 
-export function Home({ version, onMood }: { version: number; onMood: (p: Palette | null) => void }) {
+export function Home({
+  version,
+  onMood,
+  onOpen,
+}: {
+  version: number;
+  onMood: (p: Palette | null) => void;
+  onOpen: (item: LibraryItem) => void;
+}) {
   const { items, error } = useLibrary(version);
   const [audience, setAudience] = useState<AudienceFilterValue>("all");
 
@@ -56,7 +64,7 @@ export function Home({ version, onMood }: { version: number; onMood: (p: Palette
 
       {comingUp.length > 0 && (
         <div className="rise" style={{ animationDelay: "0.1s" }}>
-          <Hero items={comingUp} onFocus={(i) => onMood(i.title.art_palette)} />
+          <Hero items={comingUp} onFocus={(i) => onMood(i.title.art_palette)} onOpen={onOpen} />
         </div>
       )}
 
@@ -66,7 +74,7 @@ export function Home({ version, onMood }: { version: number; onMood: (p: Palette
           <div className="no-bar" style={{ display: "flex", gap: 14, padding: "0 20px", overflowX: "auto", scrollSnapType: "x proximity" }}>
             {keepGoing.map((it) => (
               <div key={it.entry.id} style={{ scrollSnapAlign: "start" }}>
-                <ContinueCard item={it} />
+                <ContinueCard item={it} onOpen={onOpen} />
               </div>
             ))}
             <div style={{ flexShrink: 0, width: 4 }} />
@@ -84,7 +92,7 @@ export function Home({ version, onMood }: { version: number; onMood: (p: Palette
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 14, rowGap: 24 }}>
             {saved.map((it) => (
-              <SavedCard key={it.entry.id} item={it} />
+              <SavedCard key={it.entry.id} item={it} onOpen={onOpen} />
             ))}
           </div>
         </section>

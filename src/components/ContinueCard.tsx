@@ -5,7 +5,7 @@ import { img } from "@shared/constants";
 import type { LibraryItem } from "@/lib/api";
 
 // Keep Going rail card — 16:10 art, progress line, next-episode label (PRD §7).
-export function ContinueCard({ item }: { item: LibraryItem }) {
+export function ContinueCard({ item, onOpen }: { item: LibraryItem; onOpen: (i: LibraryItem) => void }) {
   const p = item.title.art_palette;
   const pct = item.progress && item.progress.total > 0
     ? Math.round((item.progress.watched / item.progress.total) * 100)
@@ -19,7 +19,14 @@ export function ContinueCard({ item }: { item: LibraryItem }) {
     : "Up to date";
 
   return (
-    <div className="press" style={{ flexShrink: 0, width: 250 }}>
+    <div
+      className="press"
+      role="button"
+      tabIndex={0}
+      onClick={() => onOpen(item)}
+      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), onOpen(item))}
+      style={{ flexShrink: 0, width: 250, cursor: "pointer" }}
+    >
       <Art
         palette={p}
         radius={22}
@@ -32,6 +39,7 @@ export function ContinueCard({ item }: { item: LibraryItem }) {
           type="button"
           aria-label="Resume"
           className="press"
+          onClick={(e) => e.stopPropagation()}
           style={{
             position: "absolute", inset: 0, margin: "auto", width: 48, height: 48, borderRadius: "50%",
             display: "flex", alignItems: "center", justifyContent: "center",

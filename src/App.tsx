@@ -4,6 +4,7 @@ import { Slats } from "@/components/brand/Slats";
 import { TabBar } from "@/components/TabBar";
 import { AddSheet } from "@/components/AddSheet";
 import { Ambience } from "@/components/Ambience";
+import { TitleDetail } from "@/screens/TitleDetail";
 import { Home } from "@/screens/Home";
 import { Discover } from "@/screens/Discover";
 import { Calendar } from "@/screens/Calendar";
@@ -23,8 +24,10 @@ export default function App() {
   const [tab, setTab] = useState<Tab>("home");
   const [addOpen, setAddOpen] = useState(false);
   const [mood, setMood] = useState<Palette | null>(null);
-  // Bumped after a successful add so library-reading screens revalidate.
+  const [detail, setDetail] = useState<{ titleId: number; entryId: number } | null>(null);
+  // Bumped after a successful add/change so library-reading screens revalidate.
   const [libraryVersion, setLibraryVersion] = useState(0);
+  const bumpLibrary = () => setLibraryVersion((v) => v + 1);
 
   return (
     <div
@@ -121,7 +124,13 @@ export default function App() {
         </header>
 
         <main>
-          {tab === "home" && <Home version={libraryVersion} onMood={setMood} />}
+          {tab === "home" && (
+            <Home
+              version={libraryVersion}
+              onMood={setMood}
+              onOpen={(item) => setDetail({ titleId: item.title.id, entryId: item.entry.id })}
+            />
+          )}
           {tab === "discover" && <Discover />}
           {tab === "cal" && <Calendar />}
           {tab === "me" && <Settings />}
@@ -130,10 +139,14 @@ export default function App() {
 
       <TabBar tab={tab} onChange={setTab} />
 
-      {addOpen && (
-        <AddSheet
-          onClose={() => setAddOpen(false)}
-          onAdded={() => setLibraryVersion((v) => v + 1)}
+      {addOpen && <AddSheet onClose={() => setAddOpen(false)} onAdded={bumpLibrary} />}
+
+      {detail && (
+        <TitleDetail
+          titleId={detail.titleId}
+          entryId={detail.entryId}
+          onClose={() => setDetail(null)}
+          onChanged={bumpLibrary}
         />
       )}
     </div>

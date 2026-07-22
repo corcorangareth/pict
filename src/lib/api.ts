@@ -1,4 +1,4 @@
-import type { Audience, EntryState, MediaType, Title, Entry } from "@/types";
+import type { Audience, EntryState, MediaType, Title, Entry, Episode, Release } from "@/types";
 
 export interface SearchResult {
   tmdb_id: number;
@@ -16,6 +16,27 @@ export interface LibraryItem {
   upcoming: { date: string; label: string; where: string | null } | null;
   nextWatch: { season: number; number: number; name: string | null } | null;
   where: string | null;
+}
+
+export interface Season {
+  season: number;
+  episodes: Episode[];
+}
+
+export interface TitleDetailData {
+  title: Title;
+  entries: Entry[];
+  seasons: Season[];
+  releases: Release[];
+}
+
+export interface ProgressPayload {
+  entryId: number;
+  titleId: number;
+  season?: number;
+  episode?: number;
+  all?: boolean;
+  watched?: boolean;
 }
 
 async function req<T>(url: string, init?: RequestInit): Promise<T> {
@@ -42,4 +63,17 @@ export const api = {
       method: "POST",
       body: JSON.stringify(payload),
     }),
+
+  getTitle: (id: number) => req<TitleDetailData>(`/api/titles/${id}`),
+
+  markProgress: (payload: ProgressPayload) =>
+    req<{ updated: number; entryState: EntryState }>("/api/progress", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  updateEntry: (id: number, patch: { state?: EntryState; audience?: Audience; notify?: boolean }) =>
+    req<{ entry: Entry }>(`/api/entries/${id}`, { method: "PATCH", body: JSON.stringify(patch) }),
+
+  deleteEntry: (id: number) => req<{ ok: true }>(`/api/entries/${id}`, { method: "DELETE" }),
 };

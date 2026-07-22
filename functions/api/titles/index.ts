@@ -3,6 +3,7 @@ import { getDetail, type MediaType } from "../../../shared/tmdb";
 import { getRottenTomatoes } from "../../../shared/omdb";
 import { resolveCriticScore } from "../../../shared/critic";
 import { extractPalette } from "../../../shared/palette";
+import { mapTitleRow, mapEntryRow } from "../../../shared/db";
 
 type Audience = "me" | "us" | "family";
 type EntryState = "saved" | "watching" | "completed" | "abandoned";
@@ -134,29 +135,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   return json({ title: mapTitleRow(titleRow!), entry: mapEntryRow(entryRow) }, 201);
 };
 
-// ── row mappers ─────────────────────────────────────────────────────────────
-function parseJson<T>(v: unknown, fallback: T): T {
-  if (typeof v !== "string") return fallback;
-  try { return JSON.parse(v) as T; } catch { return fallback; }
-}
-
-function mapTitleRow(r: Record<string, unknown>) {
-  return {
-    id: r.id, tmdb_id: r.tmdb_id, imdb_id: r.imdb_id, media_type: r.media_type,
-    name: r.name, overview: r.overview, poster_path: r.poster_path, backdrop_path: r.backdrop_path,
-    art_palette: parseJson(r.art_palette, null), first_air: r.first_air, runtime: r.runtime,
-    genres: parseJson(r.genres, [] as string[]), networks: parseJson(r.networks, [] as string[]),
-    tmdb_vote: r.tmdb_vote, rt_score: r.rt_score, critic_score: r.critic_score,
-  };
-}
-
-function mapEntryRow(r: Record<string, unknown>) {
-  return {
-    id: r.id, title_id: r.title_id, audience: r.audience, state: r.state,
-    notify: !!r.notify, added_at: r.added_at, updated_at: r.updated_at,
-  };
-}
-
+// ── row mapper ──────────────────────────────────────────────────────────────
 function mapLibraryRow(r: Record<string, unknown>) {
   const total = Number(r.ep_total ?? 0);
   const watched = Number(r.ep_watched ?? 0);

@@ -5,13 +5,20 @@ import { img } from "@shared/constants";
 import type { LibraryItem } from "@/lib/api";
 
 // Saved for later — 3:4 poster with an audience badge (PRD §7).
-export function SavedCard({ item }: { item: LibraryItem }) {
+export function SavedCard({ item, onOpen }: { item: LibraryItem; onOpen: (i: LibraryItem) => void }) {
   const O = owners[item.entry.audience].icon;
   const kind = item.title.media_type === "tv" ? "Series" : "Film";
   const meta = [item.where, kind].filter(Boolean).join(" · ");
 
   return (
-    <div className="press">
+    <div
+      className="press"
+      role="button"
+      tabIndex={0}
+      onClick={() => onOpen(item)}
+      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), onOpen(item))}
+      style={{ cursor: "pointer" }}
+    >
       <Art
         palette={item.title.art_palette}
         radius={20}
