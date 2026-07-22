@@ -8,7 +8,7 @@ pages_build_output_dir = "dist"
 [[d1_databases]]
 binding = "DB"
 database_name = "pict"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "6462b3f3-a3b6-497f-b43a-bd3850e7d91f"
 migrations_dir = "migrations"
 
 # Non-secret vars. Secrets (TMDB_TOKEN, OMDB_KEY, ANTHROPIC_API_KEY,
