@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Search, Plus } from "lucide-react";
 import { Slats } from "@/components/brand/Slats";
 import { TabBar } from "@/components/TabBar";
+import { AddSheet } from "@/components/AddSheet";
 import { Home } from "@/screens/Home";
 import { Discover } from "@/screens/Discover";
 import { Calendar } from "@/screens/Calendar";
@@ -19,6 +20,9 @@ function greeting(): string {
 
 export default function App() {
   const [tab, setTab] = useState<Tab>("home");
+  const [addOpen, setAddOpen] = useState(false);
+  // Bumped after a successful add so library-reading screens revalidate (Phase 3).
+  const [, setLibraryVersion] = useState(0);
 
   return (
     <div
@@ -95,6 +99,7 @@ export default function App() {
             <button
               type="button"
               aria-label="Add a title"
+              onClick={() => setAddOpen(true)}
               className="press tap"
               style={{
                 width: 44,
@@ -120,6 +125,13 @@ export default function App() {
       </div>
 
       <TabBar tab={tab} onChange={setTab} />
+
+      {addOpen && (
+        <AddSheet
+          onClose={() => setAddOpen(false)}
+          onAdded={() => setLibraryVersion((v) => v + 1)}
+        />
+      )}
     </div>
   );
 }

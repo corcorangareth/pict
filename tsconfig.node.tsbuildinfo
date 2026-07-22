@@ -1,1 +1,1 @@
-{"root":["./vite.config.ts","./functions/api/_middleware.ts","./functions/api/health.ts","./shared/constants.ts","./shared/env.ts"],"version":"5.9.3"}
+{"root":["./vite.config.ts","./functions/api/_middleware.ts","./functions/api/health.ts","./functions/api/search.ts","./functions/api/titles/index.ts","./shared/constants.ts","./shared/critic.ts","./shared/env.ts","./shared/omdb.ts","./shared/palette.ts","./shared/tmdb-mock.ts","./shared/tmdb.ts"],"version":"5.9.3"}
