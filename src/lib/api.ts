@@ -36,6 +36,7 @@ export interface ProgressPayload {
   season?: number;
   episode?: number;
   all?: boolean;
+  airedOnly?: boolean;
   watched?: boolean;
 }
 

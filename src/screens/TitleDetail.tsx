@@ -56,6 +56,10 @@ export function TitleDetail({
   const filmWatched = entry.state === "completed";
   const providers = [...new Set(releases.map((r) => r.provider).filter(Boolean))] as string[];
   const where = providers.length ? providers : title.networks;
+  const today = new Date().toISOString().slice(0, 10);
+  const hasUnwatchedAired = seasons.some((s) =>
+    s.episodes.some((e) => !e.watched_at && (!e.air_date || e.air_date <= today)),
+  );
 
   async function applyEntry(patch: { state?: EntryState; audience?: Audience; notify?: boolean }) {
     if (!entry) return;
@@ -111,6 +115,32 @@ export function TitleDetail({
     });
     try {
       const res = await api.markProgress({ entryId: entry.id, titleId, season, all: true, watched });
+      setEntry({ ...entry, state: res.entryState });
+      onChanged();
+    } catch {
+      const fresh = await api.getTitle(titleId);
+      setData(fresh);
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function markUpToDate() {
+    if (!data || !entry) return;
+    const today = new Date().toISOString().slice(0, 10);
+    setPending(true);
+    // optimistic: tick every already-aired episode across all seasons
+    setData({
+      ...data,
+      seasons: data.seasons.map((s) => ({
+        ...s,
+        episodes: s.episodes.map((e) =>
+          (!e.air_date || e.air_date <= today) ? { ...e, watched_at: e.watched_at ?? new Date().toISOString() } : e,
+        ),
+      })),
+    });
+    try {
+      const res = await api.markProgress({ entryId: entry.id, titleId, airedOnly: true, watched: true });
       setEntry({ ...entry, state: res.entryState });
       onChanged();
     } catch {
@@ -217,7 +247,24 @@ export function TitleDetail({
         <div style={{ marginTop: 28 }}>
           {isTv ? (
             <>
-              <h3 style={{ fontSize: 20, marginBottom: 14 }}>Episodes</h3>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+                <h3 style={{ fontSize: 20 }}>Episodes</h3>
+                {hasUnwatchedAired && (
+                  <button
+                    type="button"
+                    onClick={markUpToDate}
+                    disabled={pending}
+                    className="press"
+                    style={{
+                      display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: "var(--r-pill)",
+                      background: "rgba(140,58,70,0.10)", color: "var(--brand)", fontSize: 12.5, fontWeight: 600,
+                    }}
+                  >
+                    <Check size={13} strokeWidth={2.6} />
+                    I'm up to date
+                  </button>
+                )}
+              </div>
               <SeasonAccordion seasons={seasons} onToggleEpisode={toggleEpisode} onMarkSeason={markSeason} pending={pending} />
             </>
           ) : (

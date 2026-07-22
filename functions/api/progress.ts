@@ -5,9 +5,10 @@ import type { Env } from "../../shared/env";
 // to be callable from the service worker notification handler with no window.
 //
 // Body (one of):
-//   Film:       { entryId, titleId, watched? }
-//   TV single:  { entryId, titleId, season, episode, watched? }
-//   TV season:  { entryId, titleId, season, all: true, watched? }
+//   Film:        { entryId, titleId, watched? }
+//   TV single:   { entryId, titleId, season, episode, watched? }
+//   TV season:   { entryId, titleId, season, all: true, watched? }
+//   TV up-to-date:{ entryId, titleId, airedOnly: true, watched? }  — every aired episode
 // `watched` defaults to true; pass false to un-mark.
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const { DB } = context.env;
@@ -18,6 +19,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     season?: number;
     episode?: number;
     all?: boolean;
+    airedOnly?: boolean;
     watched?: boolean;
   };
   try {
@@ -26,18 +28,24 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     return json({ error: { code: "bad_request", message: "Invalid JSON" } }, 400);
   }
 
-  const { entryId, titleId, season, episode, all } = body;
+  const { entryId, titleId, season, episode, all, airedOnly } = body;
   const watched = body.watched ?? true;
   if (!titleId || !entryId) {
     return json({ error: { code: "bad_request", message: "titleId and entryId required" } }, 400);
   }
 
   const stamp = watched ? new Date().toISOString() : null;
-  const isTv = season !== undefined;
+  const isTv = airedOnly || season !== undefined;
   let updated = 0;
 
   if (isTv) {
-    if (all) {
+    if (airedOnly) {
+      // "I'm up to date" — mark every already-aired episode across all seasons.
+      const res = await DB.prepare("UPDATE episodes SET watched_at = ?1 WHERE title_id = ?2 AND air_date <= date('now')")
+        .bind(stamp, titleId)
+        .run();
+      updated = res.meta.changes ?? 0;
+    } else if (all) {
       const res = await DB.prepare("UPDATE episodes SET watched_at = ?1 WHERE title_id = ?2 AND season = ?3")
         .bind(stamp, titleId, season)
         .run();
