@@ -10,8 +10,11 @@ declare const self: ServiceWorkerGlobalScope;
 // Injected by vite-plugin-pwa at build time.
 precacheAndRoute(self.__WB_MANIFEST);
 
-self.addEventListener("install", () => {
-  self.skipWaiting();
+// Don't auto-skip-waiting: a freshly installed SW waits so the app can show an
+// "Update available" banner. It activates only when the user taps update, which
+// posts this message (from registerSW's updateSW(true)).
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {

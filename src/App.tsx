@@ -1,5 +1,6 @@
-import { useState, useRef } from "react";
-import { Search, Plus } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Search, Plus, ArrowUpCircle } from "lucide-react";
+import { BUILD_ID, applyUpdate } from "@/lib/pwa";
 import { Slats } from "@/components/brand/Slats";
 import { TabBar } from "@/components/TabBar";
 import { AddSheet } from "@/components/AddSheet";
@@ -35,6 +36,22 @@ export default function App() {
     window.clearTimeout(toastTimer.current);
     toastTimer.current = window.setTimeout(() => setToast(null), 2600);
   };
+
+  // Show an "Update available" banner when a new service worker is waiting.
+  const [updateReady, setUpdateReady] = useState(false);
+  useEffect(() => {
+    const onNeed = () => setUpdateReady(true);
+    window.addEventListener("pwa:need-refresh", onNeed);
+    return () => window.removeEventListener("pwa:need-refresh", onNeed);
+  }, []);
+
+  // Confirm once, right after a new build takes effect.
+  useEffect(() => {
+    const last = localStorage.getItem("pict-build");
+    if (last && last !== BUILD_ID) showToast("Updated to the latest version");
+    localStorage.setItem("pict-build", BUILD_ID);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div
@@ -75,21 +92,25 @@ export default function App() {
                 Pict
               </span>
             </div>
-            <p
-              style={{
-                margin: 0,
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-                color: "var(--ink-faint)",
-              }}
-            >
-              {greeting()}
-            </p>
-            <h1 style={{ fontSize: 36, lineHeight: 1.05, marginTop: 4 }}>
-              Up next<span style={{ fontStyle: "italic" }}> for you</span>
-            </h1>
+            {tab === "home" && (
+              <>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    letterSpacing: "0.14em",
+                    textTransform: "uppercase",
+                    color: "var(--ink-faint)",
+                  }}
+                >
+                  {greeting()}
+                </p>
+                <h1 style={{ fontSize: 36, lineHeight: 1.05, marginTop: 4 }}>
+                  Up next<span style={{ fontStyle: "italic" }}> for you</span>
+                </h1>
+              </>
+            )}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
             <button
@@ -151,6 +172,23 @@ export default function App() {
           onClose={() => setAddOpen(false)}
           onAdded={(name) => { bumpLibrary(); showToast(`Added ${name} to your list`); }}
         />
+      )}
+
+      {updateReady && (
+        <button
+          type="button"
+          onClick={applyUpdate}
+          className="fade-in press"
+          style={{
+            position: "fixed", top: "calc(12px + env(safe-area-inset-top))", left: "50%", transform: "translateX(-50%)", zIndex: 70,
+            display: "flex", alignItems: "center", gap: 9, padding: "11px 18px", borderRadius: "var(--r-pill)",
+            background: "var(--brand)", color: "var(--paper)", fontSize: 14, fontWeight: 600,
+            boxShadow: "0 10px 30px -8px rgba(140,58,70,0.5)",
+          }}
+        >
+          <ArrowUpCircle size={17} strokeWidth={2.2} />
+          New version — tap to update
+        </button>
       )}
 
       {toast && (
