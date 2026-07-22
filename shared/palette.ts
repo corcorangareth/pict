@@ -4,8 +4,10 @@ import { TMDB_IMG, IMG_SIZE } from "./constants";
 
 // Server-side dominant-colour extraction (PRD non-negotiable: never client-side).
 // Decode the tiny w154 poster with pure-JS jpeg-js (Workers-safe, no canvas),
-// coarse-quantise, pick dominant clusters, map to the {base,a,b,c,tint} shape
-// the UI consumes. Any failure returns a neutral oxblood-derived fallback.
+// coarse-quantise, then split into a dark "ground" (base) and vivid glow colours
+// (a/b/c/tint). The glows are deliberately vivified so even a dark, desaturated
+// poster produces a palette with life in the ambient wash. Any failure returns a
+// neutral oxblood-derived fallback.
 
 const FALLBACK: Palette = {
   base: "#2A1418",
@@ -29,18 +31,16 @@ export async function extractPalette(posterPath: string | null): Promise<Palette
 }
 
 // ── Colour maths ────────────────────────────────────────────────────────────
-interface Cluster { r: number; g: number; b: number; weight: number }
+interface Cluster { r: number; g: number; b: number; weight: number; hsl: [number, number, number] }
 
 function paletteFromPixels(data: Uint8Array, width: number, height: number): Palette {
-  const buckets = new Map<number, Cluster>();
+  const buckets = new Map<number, { r: number; g: number; b: number; weight: number }>();
   const step = 4; // sample every 4px each axis — plenty for a 154px poster
   for (let y = 0; y < height; y += step) {
     for (let x = 0; x < width; x += step) {
       const i = (y * width + x) * 4;
-      const a = data[i + 3];
-      if (a < 128) continue;
+      if (data[i + 3] < 128) continue;
       const r = data[i], g = data[i + 1], b = data[i + 2];
-      // Coarse-quantise to 6 levels/channel so similar colours merge.
       const key = (Math.round(r / 51) << 8) | (Math.round(g / 51) << 4) | Math.round(b / 51);
       const c = buckets.get(key);
       if (c) { c.r += r; c.g += g; c.b += b; c.weight++; }
@@ -48,35 +48,59 @@ function paletteFromPixels(data: Uint8Array, width: number, height: number): Pal
     }
   }
 
-  const clusters = [...buckets.values()]
-    .map((c) => ({ r: c.r / c.weight, g: c.g / c.weight, b: c.b / c.weight, weight: c.weight }))
+  const clusters: Cluster[] = [...buckets.values()]
+    .map((c) => {
+      const r = c.r / c.weight, g = c.g / c.weight, b = c.b / c.weight;
+      return { r, g, b, weight: c.weight, hsl: rgbToHsl(r, g, b) };
+    })
     .sort((p, q) => q.weight - p.weight)
-    .slice(0, 8);
+    .slice(0, 10);
 
   if (clusters.length === 0) return FALLBACK;
 
-  const withHsl = clusters.map((c) => ({ ...c, hsl: rgbToHsl(c.r, c.g, c.b) }));
-  const byLight = [...withHsl].sort((p, q) => p.hsl[2] - q.hsl[2]);
-  const bySat = [...withHsl].sort((p, q) => q.hsl[1] - p.hsl[1]);
+  const byLight = [...clusters].sort((p, q) => p.hsl[2] - q.hsl[2]);
+  const base = byLight[0]; // darkest cluster = the artwork ground
 
-  const base = byLight[0];
-  const a = bySat[0];
-  const b = bySat.find((c) => c !== a && Math.abs(c.hsl[0] - a.hsl[0]) > 0.08) ?? bySat[1] ?? a;
-  const c = byLight[byLight.length - 1];
-  const tintRgb = lighten(a.r, a.g, a.b, 0.18);
+  // Vibrance favours saturated, reasonably-lit, well-covered clusters.
+  const vibe = (c: Cluster) => c.hsl[1] * (0.35 + 0.65 * Math.min(1, c.hsl[2] * 2)) * Math.sqrt(c.weight);
+  const byVibe = [...clusters].sort((p, q) => vibe(q) - vibe(p));
+
+  const aC = byVibe[0];
+  const bC = byVibe.find((c) => c !== aC && hueGap(c.hsl[0], aC.hsl[0]) > 0.08) ?? byVibe[1] ?? aC;
+  const cC = byLight[byLight.length - 1]; // lightest cluster
+
+  // Glow colours: keep the hue, force enough saturation + mid lightness to read.
+  const aHsl = vivify(aC.hsl);
+  const bHue = hueGap(bC.hsl[0], aC.hsl[0]) > 0.05 ? bC.hsl[0] : (aC.hsl[0] + 0.12) % 1;
+  const bHsl = vivify([bHue, bC.hsl[1], bC.hsl[2]]);
 
   return {
     base: hex(base.r, base.g, base.b),
-    a: hex(a.r, a.g, a.b),
-    b: hex(b.r, b.g, b.b),
-    c: hex(c.r, c.g, c.b),
-    tint: hex(tintRgb[0], tintRgb[1], tintRgb[2]),
+    a: hslHex(aHsl),
+    b: hslHex(bHsl),
+    c: hslHex([cC.hsl[0], Math.min(cC.hsl[1], 0.35), Math.max(cC.hsl[2], 0.82)]),
+    tint: hslHex([aC.hsl[0], 0.42, 0.72]),
   };
+}
+
+// Push a colour to a punchy version so the wash has life even from dark art.
+function vivify([h, s, l]: [number, number, number]): [number, number, number] {
+  return [h, Math.max(s, 0.55), Math.min(Math.max(l, 0.42), 0.6)];
+}
+
+function hueGap(a: number, b: number): number {
+  const d = Math.abs(a - b) % 1;
+  return Math.min(d, 1 - d);
 }
 
 function hex(r: number, g: number, b: number): string {
   const h = (n: number) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, "0");
   return `#${h(r)}${h(g)}${h(b)}`;
+}
+
+function hslHex([h, s, l]: [number, number, number]): string {
+  const [r, g, b] = hslToRgb(h, s, l);
+  return hex(r, g, b);
 }
 
 function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
@@ -95,6 +119,17 @@ function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
   return [h, s, l];
 }
 
-function lighten(r: number, g: number, b: number, amt: number): [number, number, number] {
-  return [r + (255 - r) * amt, g + (255 - g) * amt, b + (255 - b) * amt];
+function hslToRgb(h: number, s: number, l: number): [number, number, number] {
+  if (s === 0) return [l * 255, l * 255, l * 255];
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const t = (x: number) => {
+    if (x < 0) x += 1;
+    if (x > 1) x -= 1;
+    if (x < 1 / 6) return p + (q - p) * 6 * x;
+    if (x < 1 / 2) return q;
+    if (x < 2 / 3) return p + (q - p) * (2 / 3 - x) * 6;
+    return p;
+  };
+  return [t(h + 1 / 3) * 255, t(h) * 255, t(h - 1 / 3) * 255];
 }
