@@ -1,0 +1,1 @@
+{"root":["./vite.config.ts","./functions/api/_middleware.ts","./functions/api/health.ts","./shared/constants.ts","./shared/env.ts"],"version":"5.9.3"}

@@ -1,0 +1,38 @@
+/* Pict design tokens — PRD §9 / BUILD.md §8. Light theme only. */
+:root {
+  /* Brand — oxblood is the ONLY chrome colour */
+  --brand: #8c3a46;
+  --brand-tint: #d19aa3;
+
+  /* Paper & ink */
+  --paper: #fbfaf8;
+  --ink: #15140f;
+  --ink-soft: #57544b;
+  --ink-faint: #9c978b;
+  --line: rgba(21, 20, 15, 0.07);
+
+  /* Type */
+  --font-display: "Instrument Serif", Georgia, serif;
+  --font-ui: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --tracking-ui: -0.01em;
+  --tracking-ui-tight: -0.02em;
+  --tracking-display: -0.025em;
+  --tracking-num: -0.055em;
+
+  /* Radii */
+  --r-hero: 30px;
+  --r-rail: 22px;
+  --r-poster: 20px;
+  --r-sheet: 34px;
+  --r-pill: 9999px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0.8, 0.3, 1);
+  --press: scale(0.972);
+  --press-dur: 280ms;
+  --stagger: 60ms;
+  --ambient-dur: 1000ms;
+
+  /* Glass — ONLY tab bar, Remind pill, play button */
+  --glass-blur: blur(24px) saturate(180%);
+}

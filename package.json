@@ -1,0 +1,41 @@
+{
+  "name": "pict",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler pages dev -- vite",
+    "dev:web": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "wrangler pages dev",
+    "typecheck": "tsc -b --noEmit",
+    "db:apply:local": "wrangler d1 migrations apply pict --local",
+    "db:apply:remote": "wrangler d1 migrations apply pict --remote",
+    "db:reset": "scripts/reset.sh",
+    "db:seed": "wrangler d1 execute pict --local --file=scripts/seed.sql",
+    "icons": "node scripts/gen-icons.mjs"
+  },
+  "dependencies": {
+    "idb": "^8.0.0",
+    "lucide-react": "^0.469.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260721.1",
+    "@types/node": "^22.20.1",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "jpeg-js": "^0.4.4",
+    "sharp": "^0.33.5",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5",
+    "vite-plugin-pwa": "^0.21.1",
+    "web-push": "^3.6.7",
+    "workbox-precaching": "^7.3.0",
+    "workbox-window": "^7.3.0",
+    "wrangler": "^4.0.0"
+  }
+}

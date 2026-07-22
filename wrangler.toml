@@ -1,0 +1,19 @@
+name = "pict"
+compatibility_date = "2025-01-10"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "dist"
+
+# D1 — created once with:  wrangler d1 create pict
+# then paste the returned database_id below.
+[[d1_databases]]
+binding = "DB"
+database_name = "pict"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "migrations"
+
+# Non-secret vars. Secrets (TMDB_TOKEN, OMDB_KEY, ANTHROPIC_API_KEY,
+# VAPID_PRIVATE_KEY) are set with `wrangler pages secret put NAME`.
+[vars]
+TMDB_REGION = "IE"
+VAPID_SUBJECT = "mailto:corcorangareth@gmail.com"
+VAPID_PUBLIC_KEY = "REPLACE_WITH_VAPID_PUBLIC_KEY"
