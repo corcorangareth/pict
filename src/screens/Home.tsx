@@ -15,10 +15,12 @@ export function Home({
   version,
   onMood,
   onOpen,
+  onOpenHistory,
 }: {
   version: number;
   onMood: (p: Palette | null) => void;
   onOpen: (item: LibraryItem) => void;
+  onOpenHistory: () => void;
 }) {
   const { items, error } = useLibrary(version);
   const [audience, setAudience] = useState<AudienceFilterValue>("all");
@@ -77,7 +79,15 @@ export function Home({
 
       {keepGoing.length > 0 && (
         <section className="rise" style={{ marginTop: 44, animationDelay: "0.16s" }}>
-          <Heading action="History">Keep going</Heading>
+          <Heading
+            action={
+              <button type="button" onClick={onOpenHistory} className="press" style={{ fontSize: 13.5, fontWeight: 500, color: "var(--ink-faint)" }}>
+                History
+              </button>
+            }
+          >
+            Keep going
+          </Heading>
           <div className="no-bar" style={{ display: "flex", gap: 14, padding: "0 20px", overflowX: "auto", scrollSnapType: "x proximity" }}>
             {keepGoing.map((it) => (
               <div key={it.entry.id} style={{ scrollSnapAlign: "start" }}>

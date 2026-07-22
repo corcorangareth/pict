@@ -157,11 +157,17 @@ export default function App() {
               version={libraryVersion}
               onMood={setMood}
               onOpen={(item) => setDetail({ titleId: item.title.id, entryId: item.entry.id })}
+              onOpenHistory={() => setTab("me")}
             />
           )}
           {tab === "discover" && <Discover />}
           {tab === "cal" && <Calendar />}
-          {tab === "me" && <Settings />}
+          {tab === "me" && (
+            <Settings
+              version={libraryVersion}
+              onOpen={(item) => setDetail({ titleId: item.title.id, entryId: item.entry.id })}
+            />
+          )}
         </main>
       </div>
 
