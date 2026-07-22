@@ -94,6 +94,10 @@ export async function getDetail(env: Env, tmdbId: number, mediaType: MediaType):
   const providers = extractProviders(d["watch/providers"]);
   const episodes = mediaType === "tv" ? await fetchEpisodes(env, tmdbId, d.seasons ?? []) : [];
 
+  // Prefer the Irish (IE) release date for films; fall back to the global one.
+  let firstAir: string | null = d.release_date ?? d.first_air_date ?? null;
+  if (mediaType === "movie") firstAir = ieReleaseDate(d.release_dates) ?? firstAir;
+
   return {
     tmdb_id: tmdbId,
     imdb_id: d.external_ids?.imdb_id ?? d.imdb_id ?? null,
@@ -102,7 +106,7 @@ export async function getDetail(env: Env, tmdbId: number, mediaType: MediaType):
     overview: d.overview ?? null,
     poster_path: d.poster_path ?? null,
     backdrop_path: d.backdrop_path ?? null,
-    first_air: d.release_date ?? d.first_air_date ?? null,
+    first_air: firstAir,
     runtime: d.runtime ?? d.episode_run_time?.[0] ?? null,
     genres: (d.genres ?? []).map((g: any) => g.name),
     networks: (d.networks ?? d.production_companies ?? []).map((n: any) => n.name).slice(0, 4),
@@ -110,6 +114,18 @@ export async function getDetail(env: Env, tmdbId: number, mediaType: MediaType):
     episodes,
     providers,
   };
+}
+
+// Pick the Ireland release date from TMDB release_dates. Prefer theatrical, then
+// digital, then any — returns YYYY-MM-DD, or null if IE has no release listed.
+function ieReleaseDate(releaseDates: any): string | null {
+  const ie = releaseDates?.results?.find((r: any) => r.iso_3166_1 === REGION);
+  const list: any[] = ie?.release_dates ?? [];
+  if (!list.length) return null;
+  const byType = (t: number) => list.find((x) => x.type === t)?.release_date;
+  // 3 = theatrical, 4 = digital, 2 = theatrical (limited), 1 = premiere
+  const chosen = byType(3) ?? byType(4) ?? byType(2) ?? byType(1) ?? list[0]?.release_date;
+  return chosen ? chosen.slice(0, 10) : null;
 }
 
 function extractProviders(wp: any): string[] {

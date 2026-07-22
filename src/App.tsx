@@ -11,6 +11,7 @@ import { Discover } from "@/screens/Discover";
 import { Calendar } from "@/screens/Calendar";
 import { Settings } from "@/screens/Settings";
 import type { Tab, Palette } from "@/types";
+import type { LibraryItem } from "@/lib/api";
 import "@/styles/global.css";
 
 // A contextual greeting keeps the header editorial (PRD §7). Refined later.
@@ -26,6 +27,29 @@ export default function App() {
   const [addOpen, setAddOpen] = useState(false);
   const [mood, setMood] = useState<Palette | null>(null);
   const [detail, setDetail] = useState<{ titleId: number; entryId: number } | null>(null);
+
+  // Route overlays (title detail, add sheet) through browser history so the
+  // device/back gesture closes them instead of leaving the app. Opening pushes
+  // a history entry; popstate (back) closes whatever's open; the in-app close
+  // buttons call history.back() so the entry is balanced.
+  const openDetail = (item: LibraryItem) => {
+    setDetail({ titleId: item.title.id, entryId: item.entry.id });
+    history.pushState({ pictOverlay: "detail" }, "");
+  };
+  const openAdd = () => {
+    setAddOpen(true);
+    history.pushState({ pictOverlay: "add" }, "");
+  };
+  const closeOverlay = () => history.back();
+  useEffect(() => {
+    const onPop = () => {
+      setDetail(null);
+      setAddOpen(false);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
   // Bumped after a successful add/change so library-reading screens revalidate.
   const [libraryVersion, setLibraryVersion] = useState(0);
   const bumpLibrary = () => setLibraryVersion((v) => v + 1);
@@ -134,7 +158,7 @@ export default function App() {
             <button
               type="button"
               aria-label="Add a title"
-              onClick={() => setAddOpen(true)}
+              onClick={openAdd}
               className="press tap"
               style={{
                 width: 44,
@@ -156,18 +180,13 @@ export default function App() {
             <Home
               version={libraryVersion}
               onMood={setMood}
-              onOpen={(item) => setDetail({ titleId: item.title.id, entryId: item.entry.id })}
+              onOpen={openDetail}
               onOpenHistory={() => setTab("me")}
             />
           )}
           {tab === "discover" && <Discover />}
           {tab === "cal" && <Calendar />}
-          {tab === "me" && (
-            <Settings
-              version={libraryVersion}
-              onOpen={(item) => setDetail({ titleId: item.title.id, entryId: item.entry.id })}
-            />
-          )}
+          {tab === "me" && <Settings version={libraryVersion} onOpen={openDetail} />}
         </main>
       </div>
 
@@ -175,7 +194,7 @@ export default function App() {
 
       {addOpen && (
         <AddSheet
-          onClose={() => setAddOpen(false)}
+          onClose={closeOverlay}
           onAdded={(name) => { bumpLibrary(); showToast(`Added ${name} to your list`); }}
         />
       )}
@@ -216,7 +235,7 @@ export default function App() {
         <TitleDetail
           titleId={detail.titleId}
           entryId={detail.entryId}
-          onClose={() => setDetail(null)}
+          onClose={closeOverlay}
           onChanged={bumpLibrary}
         />
       )}
