@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import { Search, Plus, ArrowUpCircle } from "lucide-react";
+import { Plus, ArrowUpCircle } from "lucide-react";
 import { BUILD_ID, applyUpdate } from "@/lib/pwa";
 import { Slats } from "@/components/brand/Slats";
 import { TabBar } from "@/components/TabBar";
 import { AddSheet } from "@/components/AddSheet";
+import { MediaToggle } from "@/components/MediaToggle";
 import { Ambience } from "@/components/Ambience";
 import { TitleDetail } from "@/screens/TitleDetail";
 import { Lock } from "@/screens/Lock";
@@ -11,7 +12,7 @@ import { Home } from "@/screens/Home";
 import { Discover } from "@/screens/Discover";
 import { Calendar } from "@/screens/Calendar";
 import { Settings } from "@/screens/Settings";
-import type { Tab, Palette } from "@/types";
+import type { Tab, Palette, MediaType } from "@/types";
 import { api, type LibraryItem } from "@/lib/api";
 import "@/styles/global.css";
 
@@ -27,6 +28,12 @@ export default function App() {
   const [tab, setTab] = useState<Tab>("home");
   const [addOpen, setAddOpen] = useState(false);
   const [mood, setMood] = useState<Palette | null>(null);
+  // Global Shows/Movies mode, remembered across sessions.
+  const [media, setMedia] = useState<MediaType>(() => (localStorage.getItem("pict-media") === "movie" ? "movie" : "tv"));
+  const setMediaPersist = (m: MediaType) => {
+    setMedia(m);
+    localStorage.setItem("pict-media", m);
+  };
   const [detail, setDetail] = useState<{ titleId: number; entryId: number } | null>(null);
 
   // Route overlays (title detail, add sheet) through browser history so the
@@ -107,69 +114,16 @@ export default function App() {
       <Ambience palette={mood} />
 
       <div style={{ position: "relative", zIndex: 1 }}>
-        {/* Header — only on non-Discover tabs in the mockup; kept global for the shell. */}
-        <header
-          className="rise"
-          style={{
-            padding: "28px 20px 20px",
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-          }}
-        >
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-              <Slats size={17} title="Pict" />
-              <span
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: 17,
-                  letterSpacing: "-0.025em",
-                  lineHeight: 1,
-                }}
-              >
-                Pict
-              </span>
+        {/* Header — global top bar with the Shows/Movies toggle centered. */}
+        <header className="rise" style={{ padding: "20px 20px 16px" }}>
+          <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: 44 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <Slats size={19} title="Pict" />
+              <span style={{ fontFamily: "var(--font-display)", fontSize: 18, letterSpacing: "-0.025em", lineHeight: 1 }}>Pict</span>
             </div>
-            {tab === "home" && (
-              <>
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: 12,
-                    fontWeight: 600,
-                    letterSpacing: "0.14em",
-                    textTransform: "uppercase",
-                    color: "var(--ink-faint)",
-                  }}
-                >
-                  {greeting()}
-                </p>
-                <h1 style={{ fontSize: 36, lineHeight: 1.05, marginTop: 4 }}>
-                  Up next<span style={{ fontStyle: "italic" }}> for you</span>
-                </h1>
-              </>
-            )}
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
-            <button
-              type="button"
-              aria-label="Search"
-              className="press tap"
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: "var(--r-pill)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "rgba(255,255,255,0.7)",
-                backdropFilter: "blur(10px)",
-                border: "1px solid var(--line)",
-              }}
-            >
-              <Search size={16} color="var(--ink-soft)" />
-            </button>
+            <div style={{ position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
+              <MediaToggle value={media} onChange={setMediaPersist} />
+            </div>
             <button
               type="button"
               aria-label="Add a title"
@@ -188,12 +142,24 @@ export default function App() {
               <Plus size={18} color="var(--paper)" strokeWidth={2.4} />
             </button>
           </div>
+
+          {tab === "home" && (
+            <div style={{ marginTop: 16 }}>
+              <p style={{ margin: 0, fontSize: 12, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--ink-faint)" }}>
+                {greeting()}
+              </p>
+              <h1 style={{ fontSize: 36, lineHeight: 1.05, marginTop: 4 }}>
+                Up next<span style={{ fontStyle: "italic" }}> for you</span>
+              </h1>
+            </div>
+          )}
         </header>
 
         <main>
           {tab === "home" && (
             <Home
               version={libraryVersion}
+              media={media}
               onMood={setMood}
               onOpen={openDetail}
               onOpenHistory={() => setTab("me")}
@@ -201,7 +167,7 @@ export default function App() {
           )}
           {tab === "discover" && <Discover />}
           {tab === "cal" && <Calendar />}
-          {tab === "me" && <Settings version={libraryVersion} onOpen={openDetail} />}
+          {tab === "me" && <Settings version={libraryVersion} media={media} onOpen={openDetail} />}
         </main>
       </div>
 

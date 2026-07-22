@@ -6,18 +6,19 @@ import { EmptyState } from "@/components/EmptyState";
 import { useLibrary } from "@/hooks/useLibrary";
 import { BUILD_ID } from "@/lib/pwa";
 import type { LibraryItem } from "@/lib/api";
+import type { MediaType } from "@/types";
 
 // The "Me" tab: your watch history (completed titles that no longer surface on
-// Home) plus app info. Settings controls land here in later phases.
-export function Settings({ version, onOpen }: { version: number; onOpen: (i: LibraryItem) => void }) {
+// Home) plus app info. Respects the global Shows/Movies toggle.
+export function Settings({ version, media, onOpen }: { version: number; media: MediaType; onOpen: (i: LibraryItem) => void }) {
   const { items } = useLibrary(version);
 
   const watched = useMemo(
     () =>
       (items ?? [])
-        .filter((i) => i.entry.state === "completed")
+        .filter((i) => i.entry.state === "completed" && i.title.media_type === media)
         .sort((a, b) => (a.entry.updated_at < b.entry.updated_at ? 1 : -1)),
-    [items],
+    [items, media],
   );
 
   return (
@@ -37,8 +38,8 @@ export function Settings({ version, onOpen }: { version: number; onOpen: (i: Lib
         <div style={{ height: 120 }} aria-hidden />
       ) : watched.length === 0 ? (
         <EmptyState
-          title="Nothing watched yet"
-          body="Films and shows you finish show up here."
+          title={media === "tv" ? "No shows watched yet" : "No movies watched yet"}
+          body={`${media === "tv" ? "Shows" : "Films"} you finish show up here.`}
           icon={<Check size={22} color="var(--ink-faint)" style={{ margin: "0 auto" }} />}
         />
       ) : (

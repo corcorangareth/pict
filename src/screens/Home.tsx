@@ -9,15 +9,17 @@ import { AudienceFilter, type AudienceFilterValue } from "@/components/AudienceF
 import { useLibrary } from "@/hooks/useLibrary";
 import { daysUntil } from "@/lib/countdown";
 import type { LibraryItem } from "@/lib/api";
-import type { Palette } from "@/types";
+import type { Palette, MediaType } from "@/types";
 
 export function Home({
   version,
+  media,
   onMood,
   onOpen,
   onOpenHistory,
 }: {
   version: number;
+  media: MediaType;
   onMood: (p: Palette | null) => void;
   onOpen: (item: LibraryItem) => void;
   onOpenHistory: () => void;
@@ -26,8 +28,11 @@ export function Home({
   const [audience, setAudience] = useState<AudienceFilterValue>("all");
 
   const filtered = useMemo(
-    () => (items ?? []).filter((i) => audience === "all" || i.entry.audience === audience),
-    [items, audience],
+    () =>
+      (items ?? []).filter(
+        (i) => i.title.media_type === media && (audience === "all" || i.entry.audience === audience),
+      ),
+    [items, media, audience],
   );
 
   // Coming Up = anything with a genuinely upcoming episode/release you're still
@@ -65,8 +70,8 @@ export function Home({
 
       {items !== null && total === 0 && (
         <EmptyState
-          title="Nothing here yet"
-          body="Tap + to add a show or film."
+          title={media === "tv" ? "No shows here yet" : "No movies here yet"}
+          body={`Tap + to add ${media === "tv" ? "a show" : "a film"}.`}
           icon={<Sparkles size={22} color="var(--ink-faint)" style={{ margin: "0 auto" }} />}
         />
       )}
