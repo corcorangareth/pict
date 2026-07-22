@@ -1,6 +1,7 @@
 import { createElement } from "react";
 import { Art } from "@/components/Art";
 import { owners } from "@/lib/audience";
+import { img } from "@shared/constants";
 import type { LibraryItem } from "@/lib/api";
 
 // Saved for later — 3:4 poster with an audience badge (PRD §7).
@@ -11,7 +12,13 @@ export function SavedCard({ item }: { item: LibraryItem }) {
 
   return (
     <div className="press">
-      <Art palette={item.title.art_palette} radius={20} style={{ aspectRatio: "3/4", boxShadow: "0 10px 24px -14px rgba(21,20,15,0.45)" }}>
+      <Art
+        palette={item.title.art_palette}
+        radius={20}
+        imageSrc={img(item.title.poster_path, "poster")}
+        imageAlt={item.title.name}
+        style={{ aspectRatio: "3/4", boxShadow: "0 10px 24px -14px rgba(21,20,15,0.45)" }}
+      >
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(8,7,5,0.5), transparent 55%)" }} />
         <div
           style={{

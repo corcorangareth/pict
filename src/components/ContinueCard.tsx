@@ -1,6 +1,7 @@
 import { Play } from "lucide-react";
 import { Art } from "@/components/Art";
 import { owners } from "@/lib/audience";
+import { img } from "@shared/constants";
 import type { LibraryItem } from "@/lib/api";
 
 // Keep Going rail card — 16:10 art, progress line, next-episode label (PRD §7).
@@ -19,7 +20,13 @@ export function ContinueCard({ item }: { item: LibraryItem }) {
 
   return (
     <div className="press" style={{ flexShrink: 0, width: 250 }}>
-      <Art palette={p} radius={22} style={{ aspectRatio: "16/10", boxShadow: "0 14px 30px -16px rgba(21,20,15,0.5)" }}>
+      <Art
+        palette={p}
+        radius={22}
+        imageSrc={img(item.title.backdrop_path, "rail") ?? img(item.title.poster_path, "rail")}
+        imageAlt={item.title.name}
+        style={{ aspectRatio: "16/10", boxShadow: "0 14px 30px -16px rgba(21,20,15,0.5)" }}
+      >
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(8,7,5,0.6), transparent 60%)" }} />
         <button
           type="button"

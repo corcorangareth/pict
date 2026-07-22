@@ -4,7 +4,8 @@ import { Art } from "@/components/Art";
 import { Countdown } from "@/components/Countdown";
 import { owners } from "@/lib/audience";
 import { daysUntil } from "@/lib/countdown";
-import type { LibraryItem, } from "@/lib/api";
+import { img } from "@shared/constants";
+import type { LibraryItem } from "@/lib/api";
 
 // Coming Up carousel — soonest first, 4:5 artwork, countdown as editorial type,
 // glass "Remind me" pill (PRD §7).
@@ -36,7 +37,14 @@ export function Hero({ items, onFocus }: { items: LibraryItem[]; onFocus: (i: Li
           const days = it.upcoming ? daysUntil(it.upcoming.date) : 0;
           return (
             <article key={it.entry.id} className="press" style={{ scrollSnapAlign: "start", flexShrink: 0, width: "84%" }}>
-              <Art palette={it.title.art_palette} radius={30} style={{ aspectRatio: "4/5", boxShadow: "0 22px 50px -20px rgba(21,20,15,0.55)" }}>
+              <Art
+                palette={it.title.art_palette}
+                radius={30}
+                imageSrc={img(it.title.poster_path, "hero")}
+                imageAlt={it.title.name}
+                eager
+                style={{ aspectRatio: "4/5", boxShadow: "0 22px 50px -20px rgba(21,20,15,0.55)" }}
+              >
                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(8,7,5,0.86) 4%, rgba(8,7,5,0.18) 46%, transparent 68%)" }} />
 
                 <div style={{ position: "absolute", top: 24, left: 24 }}>
