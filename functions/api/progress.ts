@@ -65,15 +65,22 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   if (isTv) {
     const c = await DB.prepare(
       `SELECT
+         COUNT(*) AS total,
          SUM(CASE WHEN watched_at IS NOT NULL THEN 1 ELSE 0 END) AS watched,
          SUM(CASE WHEN air_date <= date('now') THEN 1 ELSE 0 END) AS aired,
          SUM(CASE WHEN air_date <= date('now') AND watched_at IS NOT NULL THEN 1 ELSE 0 END) AS watched_aired
        FROM episodes WHERE title_id = ?1`,
     )
       .bind(titleId)
-      .first<{ watched: number; aired: number; watched_aired: number }>();
-    const w = c?.watched ?? 0, aired = c?.aired ?? 0, wa = c?.watched_aired ?? 0;
-    entryState = aired > 0 && wa === aired ? "completed" : w > 0 ? "watching" : "saved";
+      .first<{ total: number; watched: number; aired: number; watched_aired: number }>();
+    const total = c?.total ?? 0, w = c?.watched ?? 0, aired = c?.aired ?? 0, wa = c?.watched_aired ?? 0;
+    const caughtUp = aired > 0 && wa === aired;
+    const hasFuture = total > aired;
+    // completed only when the show has fully aired and every episode is watched;
+    // caught up on an airing show stays "watching" (waiting for more).
+    if (caughtUp && !hasFuture) entryState = "completed";
+    else if (w > 0) entryState = "watching";
+    else entryState = "saved";
   } else {
     // Film: watched → completed, un-mark → watching.
     entryState = watched ? "completed" : "watching";

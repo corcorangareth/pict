@@ -28,12 +28,19 @@ export function Home({
     [items, audience],
   );
 
-  // Coming Up mirrors the notifiable states — a completed/abandoned title with
-  // a future date isn't something you're waiting on (matches PRD §5 notify rule).
+  // Coming Up = anything with a genuinely upcoming episode/release you're still
+  // waiting on. Includes a *completed* TV show whose next season is coming (you're
+  // caught up and waiting for more). Excludes abandoned titles, and completed
+  // films (you've watched it — a future streaming date is just noise).
   const comingUp = useMemo(
     () =>
       filtered
-        .filter((i) => i.upcoming && (i.entry.state === "saved" || i.entry.state === "watching"))
+        .filter(
+          (i) =>
+            i.upcoming &&
+            i.entry.state !== "abandoned" &&
+            !(i.entry.state === "completed" && i.title.media_type === "movie"),
+        )
         .sort((a, b) => daysUntil(a.upcoming!.date) - daysUntil(b.upcoming!.date)),
     [filtered],
   );
