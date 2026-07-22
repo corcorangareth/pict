@@ -54,15 +54,15 @@ export function ContinueCard({ item, onOpen }: { item: LibraryItem; onOpen: (i: 
             <div style={{ height: "100%", borderRadius: 99, width: `${pct}%`, background: "#fff" }} />
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <span style={{ fontSize: 11.5, fontWeight: 600, color: "#fff" }}>{next}</span>
-            <span style={{ fontSize: 10.5, color: "rgba(255,255,255,0.65)" }}>{sub}</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>{next}</span>
+            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>{sub}</span>
           </div>
         </div>
       </Art>
       <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 8 }}>
         <span style={{ width: 6, height: 6, borderRadius: "50%", background: p?.tint ?? "var(--brand-tint)" }} />
-        <p style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em", margin: 0 }}>{item.title.name}</p>
-        <span style={{ fontSize: 11.5, color: "var(--ink-faint)" }}>· {owners[item.entry.audience].short}</span>
+        <p style={{ fontSize: 15.5, fontWeight: 600, letterSpacing: "-0.01em", margin: 0 }}>{item.title.name}</p>
+        <span style={{ fontSize: 13, color: "var(--ink-faint)" }}>· {owners[item.entry.audience].short}</span>
       </div>
     </div>
   );

@@ -51,8 +51,8 @@ export function SeasonAccordion({
                 style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px 16px 12px", textAlign: "left" }}
               >
                 <div>
-                  <p style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)", margin: 0 }}>Season {s.season}</p>
-                  <p style={{ fontSize: 12, color: "var(--ink-faint)", margin: "2px 0 0" }}>{watchedCount}/{total} watched</p>
+                  <p style={{ fontSize: 16.5, fontWeight: 600, color: "var(--ink)", margin: 0 }}>Season {s.season}</p>
+                  <p style={{ fontSize: 13, color: "var(--ink-faint)", margin: "3px 0 0" }}>{watchedCount}/{total} watched</p>
                 </div>
                 <ChevronDown
                   size={18}
@@ -78,11 +78,11 @@ export function SeasonAccordion({
                     >
                       <Tick on={watched} />
                       <span style={{ flex: 1, minWidth: 0 }}>
-                        <span style={{ fontSize: 13.5, fontWeight: 500, color: "var(--ink)", display: "block" }}>
+                        <span style={{ fontSize: 15, fontWeight: 500, color: "var(--ink)", display: "block" }}>
                           {e.number}. {e.name ?? `Episode ${e.number}`}
                         </span>
                         {e.air_date && (
-                          <span style={{ fontSize: 11.5, color: "var(--ink-faint)" }}>
+                          <span style={{ fontSize: 12.5, color: "var(--ink-faint)" }}>
                             {aired ? formatDate(e.air_date) : `Airs ${formatDate(e.air_date)}`}
                           </span>
                         )}

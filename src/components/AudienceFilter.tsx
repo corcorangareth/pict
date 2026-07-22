@@ -16,7 +16,7 @@ export function AudienceFilter({
     ...audienceOrder.map((k) => ({ k, label: owners[k].label })),
   ];
   return (
-    <div style={{ padding: "0 20px 24px", display: "flex", gap: 8 }}>
+    <div className="no-bar" style={{ padding: "0 20px 24px", display: "flex", gap: 8, overflowX: "auto" }}>
       {options.map(({ k, label }) => {
         const on = value === k;
         return (
@@ -28,14 +28,16 @@ export function AudienceFilter({
             className="press"
             style={{
               borderRadius: "var(--r-pill)",
-              padding: "8px 16px",
+              padding: "10px 18px",
               background: on ? "var(--brand)" : "rgba(255,255,255,0.68)",
               color: on ? "var(--paper)" : "var(--ink-soft)",
               border: `1px solid ${on ? "var(--brand)" : "var(--line)"}`,
               backdropFilter: "blur(10px)",
-              fontSize: 12.5,
+              fontSize: 14.5,
               fontWeight: 600,
               letterSpacing: "-0.005em",
+              whiteSpace: "nowrap",
+              flexShrink: 0,
               transition: "background 250ms var(--ease), color 250ms var(--ease)",
             }}
           >

@@ -37,8 +37,8 @@ export function SavedCard({ item, onOpen }: { item: LibraryItem; onOpen: (i: Lib
           {createElement(O, { size: 11, color: "#fff", strokeWidth: 2.2 })}
         </div>
       </Art>
-      <p style={{ marginTop: 10, fontSize: 13.5, fontWeight: 600, letterSpacing: "-0.01em" }}>{item.title.name}</p>
-      <p style={{ fontSize: 11.5, color: "var(--ink-faint)", marginTop: 1 }}>{meta}</p>
+      <p style={{ marginTop: 10, fontSize: 15.5, fontWeight: 600, letterSpacing: "-0.01em" }}>{item.title.name}</p>
+      <p style={{ fontSize: 13, color: "var(--ink-faint)", marginTop: 2 }}>{meta}</p>
     </div>
   );
 }

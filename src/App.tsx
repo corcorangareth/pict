@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Search, Plus } from "lucide-react";
 import { Slats } from "@/components/brand/Slats";
 import { TabBar } from "@/components/TabBar";
@@ -28,6 +28,13 @@ export default function App() {
   // Bumped after a successful add/change so library-reading screens revalidate.
   const [libraryVersion, setLibraryVersion] = useState(0);
   const bumpLibrary = () => setLibraryVersion((v) => v + 1);
+  const [toast, setToast] = useState<string | null>(null);
+  const toastTimer = useRef<number | undefined>(undefined);
+  const showToast = (msg: string) => {
+    setToast(msg);
+    window.clearTimeout(toastTimer.current);
+    toastTimer.current = window.setTimeout(() => setToast(null), 2600);
+  };
 
   return (
     <div
@@ -71,7 +78,7 @@ export default function App() {
             <p
               style={{
                 margin: 0,
-                fontSize: 11,
+                fontSize: 12,
                 fontWeight: 600,
                 letterSpacing: "0.14em",
                 textTransform: "uppercase",
@@ -80,7 +87,7 @@ export default function App() {
             >
               {greeting()}
             </p>
-            <h1 style={{ fontSize: 34, lineHeight: 1.05, marginTop: 2 }}>
+            <h1 style={{ fontSize: 36, lineHeight: 1.05, marginTop: 4 }}>
               Up next<span style={{ fontStyle: "italic" }}> for you</span>
             </h1>
           </div>
@@ -139,7 +146,27 @@ export default function App() {
 
       <TabBar tab={tab} onChange={setTab} />
 
-      {addOpen && <AddSheet onClose={() => setAddOpen(false)} onAdded={bumpLibrary} />}
+      {addOpen && (
+        <AddSheet
+          onClose={() => setAddOpen(false)}
+          onAdded={(name) => { bumpLibrary(); showToast(`Added ${name} to your list`); }}
+        />
+      )}
+
+      {toast && (
+        <div
+          role="status"
+          className="fade-in"
+          style={{
+            position: "fixed", bottom: 92, left: "50%", transform: "translateX(-50%)", zIndex: 60,
+            maxWidth: 360, padding: "13px 20px", borderRadius: "var(--r-pill)",
+            background: "var(--ink)", color: "var(--paper)", fontSize: 14, fontWeight: 500,
+            boxShadow: "0 10px 30px -8px rgba(21,20,15,0.4)", textAlign: "center",
+          }}
+        >
+          {toast}
+        </div>
+      )}
 
       {detail && (
         <TitleDetail

@@ -217,7 +217,7 @@ export function TitleDetail({
                 </span>
               </span>
             )}
-            <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.72)" }}>{meta}</span>
+            <span style={{ fontSize: 12.5, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.75)" }}>{meta}</span>
           </div>
           <h1 style={{ fontSize: 38, lineHeight: 0.98, color: "#fff", letterSpacing: "-0.015em" }}>{title.name}</h1>
         </div>
@@ -225,17 +225,17 @@ export function TitleDetail({
 
       <div style={{ padding: "20px 20px 140px" }}>
         {title.overview && (
-          <p style={{ fontSize: 14, lineHeight: 1.55, color: "var(--ink-soft)", marginTop: 0 }}>{title.overview}</p>
+          <p style={{ fontSize: 15.5, lineHeight: 1.6, color: "var(--ink-soft)", marginTop: 0 }}>{title.overview}</p>
         )}
 
         {where.length > 0 && (
-          <div style={{ marginTop: 16 }}>
-            <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-faint)", marginBottom: 8 }}>
+          <div style={{ marginTop: 18 }}>
+            <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-faint)", marginBottom: 8 }}>
               Where to watch
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {where.map((w) => (
-                <span key={w} style={{ fontSize: 12.5, fontWeight: 500, color: "var(--ink)", background: "rgba(21,20,15,0.05)", borderRadius: 99, padding: "6px 12px" }}>
+                <span key={w} style={{ fontSize: 14, fontWeight: 500, color: "var(--ink)", background: "rgba(21,20,15,0.05)", borderRadius: 99, padding: "8px 14px" }}>
                   {w}
                 </span>
               ))}
@@ -257,7 +257,7 @@ export function TitleDetail({
                     className="press"
                     style={{
                       display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: "var(--r-pill)",
-                      background: "rgba(140,58,70,0.10)", color: "var(--brand)", fontSize: 12.5, fontWeight: 600,
+                      background: "rgba(140,58,70,0.10)", color: "var(--brand)", fontSize: 13.5, fontWeight: 600,
                     }}
                   >
                     <Check size={13} strokeWidth={2.6} />
@@ -279,15 +279,15 @@ export function TitleDetail({
                 color: filmWatched ? "var(--ink-soft)" : "var(--paper)",
               }}
             >
-              <Check size={16} strokeWidth={2.4} />
-              <span style={{ fontSize: 15.5, fontWeight: 600 }}>{filmWatched ? "Watched" : "Mark watched"}</span>
+              <Check size={17} strokeWidth={2.4} />
+              <span style={{ fontSize: 16, fontWeight: 600 }}>{filmWatched ? "Watched" : "Mark watched"}</span>
             </button>
           )}
         </div>
 
         {/* Controls */}
         <div style={{ marginTop: 28, borderTop: "1px solid var(--line)", paddingTop: 22 }}>
-          <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-faint)", marginBottom: 10 }}>
+          <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-faint)", marginBottom: 10 }}>
             Watching with
           </p>
           <AudiencePicker value={entry.audience} onChange={(a) => applyEntry({ audience: a })} />
@@ -303,8 +303,8 @@ export function TitleDetail({
             }}
           >
             <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              {entry.notify ? <Bell size={16} color="var(--brand)" /> : <BellOff size={16} color="var(--ink-faint)" />}
-              <span style={{ fontSize: 14, fontWeight: 500, color: "var(--ink)" }}>Notify me on release</span>
+              {entry.notify ? <Bell size={17} color="var(--brand)" /> : <BellOff size={17} color="var(--ink-faint)" />}
+              <span style={{ fontSize: 15, fontWeight: 500, color: "var(--ink)" }}>Notify me on release</span>
             </span>
             <span
               aria-hidden
@@ -324,8 +324,8 @@ export function TitleDetail({
             className="press"
             style={{ marginTop: 12, width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: 14, borderRadius: 16, color: "var(--ink-faint)" }}
           >
-            <Trash2 size={15} />
-            <span style={{ fontSize: 13.5, fontWeight: 500 }}>Remove from {entry.audience === "me" ? "my list" : "list"}</span>
+            <Trash2 size={16} />
+            <span style={{ fontSize: 14.5, fontWeight: 500 }}>Remove from {entry.audience === "me" ? "my list" : "list"}</span>
           </button>
 
           {error && <p style={{ color: "var(--brand)", fontSize: 12.5, marginTop: 8, textAlign: "center" }}>{error}</p>}

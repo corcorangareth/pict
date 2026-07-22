@@ -33,5 +33,19 @@ export function useLibrary(version = 0) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [version, revalidate]);
 
+  // Re-fetch whenever the app is brought back to the foreground (e.g. reopening
+  // the installed PWA), so the library is never showing stale/empty cache.
+  useEffect(() => {
+    const onFocus = () => {
+      if (document.visibilityState === "visible") void revalidate();
+    };
+    document.addEventListener("visibilitychange", onFocus);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      document.removeEventListener("visibilitychange", onFocus);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [revalidate]);
+
   return { items, error, revalidate };
 }

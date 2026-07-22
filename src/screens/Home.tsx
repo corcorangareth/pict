@@ -85,8 +85,8 @@ export function Home({
       {saved.length > 0 && (
         <section className="rise" style={{ marginTop: 44, padding: "0 20px", animationDelay: "0.22s" }}>
           <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 16 }}>
-            <h3 style={{ fontSize: 25, letterSpacing: "-0.01em" }}>Saved for later</h3>
-            <span style={{ fontSize: 12.5, fontWeight: 500, color: "var(--ink-faint)" }}>
+            <h3 style={{ fontSize: 26, letterSpacing: "-0.01em" }}>Saved for later</h3>
+            <span style={{ fontSize: 13.5, fontWeight: 500, color: "var(--ink-faint)" }}>
               {saved.length} {saved.length === 1 ? "title" : "titles"}
             </span>
           </div>

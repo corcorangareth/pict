@@ -79,21 +79,21 @@ export function Hero({
                     border: "1px solid rgba(255,255,255,0.22)",
                   }}
                 >
-                  <Bell size={12} color="#fff" strokeWidth={2.2} />
-                  <span style={{ fontSize: 11.5, fontWeight: 600, color: "#fff" }}>Remind me</span>
+                  <Bell size={13} color="#fff" strokeWidth={2.2} />
+                  <span style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>Remind me</span>
                 </button>
 
                 <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: 24 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                    {createElement(O, { size: 11, color: "rgba(255,255,255,0.7)", strokeWidth: 2.2 })}
-                    <span style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)" }}>
+                    {createElement(O, { size: 12, color: "rgba(255,255,255,0.72)", strokeWidth: 2.2 })}
+                    <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.72)" }}>
                       {owners[it.entry.audience].label}
                       {it.upcoming?.where ? ` · ${it.upcoming.where}` : ""}
                     </span>
                   </div>
-                  <h2 style={{ fontSize: 40, lineHeight: 0.95, color: "#fff", letterSpacing: "-0.015em" }}>{it.title.name}</h2>
+                  <h2 style={{ fontSize: 42, lineHeight: 0.95, color: "#fff", letterSpacing: "-0.015em" }}>{it.title.name}</h2>
                   {it.upcoming && (
-                    <p style={{ fontSize: 13, color: "rgba(255,255,255,0.68)", marginTop: 8 }}>{it.upcoming.label}</p>
+                    <p style={{ fontSize: 14.5, color: "rgba(255,255,255,0.72)", marginTop: 8 }}>{it.upcoming.label}</p>
                   )}
                 </div>
               </Art>
