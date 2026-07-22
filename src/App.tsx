@@ -6,12 +6,13 @@ import { TabBar } from "@/components/TabBar";
 import { AddSheet } from "@/components/AddSheet";
 import { Ambience } from "@/components/Ambience";
 import { TitleDetail } from "@/screens/TitleDetail";
+import { Lock } from "@/screens/Lock";
 import { Home } from "@/screens/Home";
 import { Discover } from "@/screens/Discover";
 import { Calendar } from "@/screens/Calendar";
 import { Settings } from "@/screens/Settings";
 import type { Tab, Palette } from "@/types";
-import type { LibraryItem } from "@/lib/api";
+import { api, type LibraryItem } from "@/lib/api";
 import "@/styles/global.css";
 
 // A contextual greeting keeps the header editorial (PRD §7). Refined later.
@@ -76,6 +77,20 @@ export default function App() {
     localStorage.setItem("pict-build", BUILD_ID);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Password gate: null = checking, false = locked, true = unlocked.
+  const [authed, setAuthed] = useState<boolean | null>(null);
+  useEffect(() => {
+    api.session().then(setAuthed);
+    const onLocked = () => setAuthed(false);
+    window.addEventListener("pict:locked", onLocked);
+    return () => window.removeEventListener("pict:locked", onLocked);
+  }, []);
+
+  // While checking the session, render nothing (avoids a flash of the app or
+  // the lock screen). Locked → the unlock gate. Unlocked → the app.
+  if (authed === null) return <div style={{ minHeight: "100dvh", background: "var(--paper)" }} />;
+  if (!authed) return <Lock onUnlock={() => setAuthed(true)} />;
 
   return (
     <div

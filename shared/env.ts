@@ -12,4 +12,6 @@ export interface Env {
   OMDB_KEY: string;
   ANTHROPIC_API_KEY: string;
   VAPID_PRIVATE_KEY: string;
+  APP_PASSWORD: string; // the single password that unlocks the app
+  AUTH_SECRET: string; // HMAC key for signing the session cookie
 }

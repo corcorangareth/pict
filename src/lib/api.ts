@@ -45,6 +45,11 @@ async function req<T>(url: string, init?: RequestInit): Promise<T> {
     ...init,
     headers: { "content-type": "application/json", ...(init?.headers ?? {}) },
   });
+  // Session expired / locked — tell the app to show the unlock screen.
+  if (res.status === 401) {
+    window.dispatchEvent(new Event("pict:locked"));
+    throw new Error("Locked");
+  }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     const message = (data as any)?.error?.message ?? `Request failed (${res.status})`;
@@ -54,6 +59,16 @@ async function req<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  // Auth. session() resolves true if the current cookie is valid.
+  session: () =>
+    fetch("/api/session").then((r) => r.ok),
+  login: (password: string) =>
+    fetch("/auth/login", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ password }),
+    }).then((r) => r.ok),
+
   search: (q: string) =>
     req<{ results: SearchResult[] }>(`/api/search?q=${encodeURIComponent(q)}`).then((d) => d.results),
 
