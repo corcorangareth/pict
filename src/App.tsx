@@ -34,14 +34,15 @@ export default function App() {
     setMedia(m);
     localStorage.setItem("pict-media", m);
   };
-  const [detail, setDetail] = useState<{ titleId: number; entryId: number } | null>(null);
+  const [detail, setDetail] = useState<{ titleId: number; entryId?: number } | null>(null);
 
   // Route overlays (title detail, add sheet) through browser history so the
   // device/back gesture closes them instead of leaving the app. Opening pushes
   // a history entry; popstate (back) closes whatever's open; the in-app close
   // buttons call history.back() so the entry is balanced.
-  const openDetail = (item: LibraryItem) => {
-    setDetail({ titleId: item.title.id, entryId: item.entry.id });
+  const openDetail = (item: LibraryItem) => openTitle(item.title.id, item.entry.id);
+  const openTitle = (titleId: number, entryId?: number) => {
+    setDetail({ titleId, entryId });
     history.pushState({ pictOverlay: "detail" }, "");
   };
   const openAdd = () => {
@@ -166,7 +167,7 @@ export default function App() {
             />
           )}
           {tab === "discover" && <Discover />}
-          {tab === "cal" && <Calendar />}
+          {tab === "cal" && <Calendar version={libraryVersion} media={media} onOpen={openTitle} />}
           {tab === "me" && <Settings version={libraryVersion} media={media} onOpen={openDetail} />}
         </main>
       </div>

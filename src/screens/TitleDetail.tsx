@@ -16,7 +16,7 @@ export function TitleDetail({
   onChanged,
 }: {
   titleId: number;
-  entryId: number;
+  entryId?: number;
   onClose: () => void;
   onChanged: () => void;
 }) {

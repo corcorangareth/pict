@@ -30,6 +30,19 @@ export interface TitleDetailData {
   releases: Release[];
 }
 
+export interface CalendarItem {
+  date: string;
+  type: "episode" | "release";
+  title_id: number;
+  name: string;
+  media_type: MediaType;
+  poster_path: string | null;
+  art_palette: Record<string, string> | null;
+  audience: Audience | null;
+  watched: boolean;
+  label: string;
+}
+
 export interface ProgressPayload {
   entryId: number;
   titleId: number;
@@ -81,6 +94,9 @@ export const api = {
     }),
 
   getTitle: (id: number) => req<TitleDetailData>(`/api/titles/${id}`),
+
+  getCalendar: (from: string, to: string) =>
+    req<{ items: CalendarItem[] }>(`/api/calendar?from=${from}&to=${to}`).then((d) => d.items),
 
   markProgress: (payload: ProgressPayload) =>
     req<{ updated: number; entryState: EntryState }>("/api/progress", {
