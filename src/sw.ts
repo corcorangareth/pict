@@ -84,19 +84,28 @@ async function markWatched(data: NotifData): Promise<void> {
   try {
     const res = await fetch("/api/progress", {
       method: "POST",
+      credentials: "include",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
     });
     if (res.ok) {
-      await self.registration.showNotification("Marked watched", {
-        body: data.titleName,
-        tag: `confirm-${data.titleId ?? Date.now()}`,
-        silent: true,
-      });
+      await notify("Marked watched", data.titleName);
+    } else {
+      // Surface the failure so it isn't silent (auth = 401, etc.).
+      await notify("Couldn't mark watched", `Error ${res.status} — open the app to update it.`);
     }
   } catch {
-    // Phase 8: queue in IndexedDB and replay when back online.
+    // Offline or blocked — a proper retry queue lands in Phase 8.
+    await notify("Couldn't mark watched", "You appear to be offline — try in the app.");
   }
+}
+
+function notify(title: string, message?: string): Promise<void> {
+  return self.registration.showNotification(title, {
+    body: message,
+    tag: `confirm-${Date.now()}`,
+    silent: true,
+  });
 }
 
 async function openApp(url: string): Promise<void> {
