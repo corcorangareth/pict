@@ -1,0 +1,26 @@
+diff --git a/node_modules/@block65/webcrypto-web-push/dist/lib/isomorphic-crypto.js b/node_modules/@block65/webcrypto-web-push/dist/lib/isomorphic-crypto.js
+index a788e61..eea51c3 100644
+--- a/node_modules/@block65/webcrypto-web-push/dist/lib/isomorphic-crypto.js
++++ b/node_modules/@block65/webcrypto-web-push/dist/lib/isomorphic-crypto.js
+@@ -1,14 +1,10 @@
+ /// <reference lib="webworker" />
+-/// <reference types="node" />
+-const impl = globalThis.crypto
+-    ? globalThis.crypto
+-    : await import('node:crypto');
+-// we only export the values we use to keep things simple, we dont need a fully
+-// cross platform compatible crypto library
++// Patched for Cloudflare Workers/Pages: use Web Crypto only. Upstream does
++// `await import('node:crypto')` which the Workers bundler can't process and
++// which is never needed at runtime (workerd/browsers expose globalThis.crypto).
++const impl = globalThis.crypto;
+ export const crypto = {
+-    getRandomValues: (array) => 'webcrypto' in impl
+-        ? impl.webcrypto.getRandomValues(array)
+-        : impl.getRandomValues(array),
+-    subtle: 'webcrypto' in impl ? impl.webcrypto.subtle : impl.subtle,
++    getRandomValues: (array) => impl.getRandomValues(array),
++    subtle: impl.subtle,
+ };
+-export const CryptoKey = 'webcrypto' in impl ? impl.webcrypto.CryptoKey : globalThis.CryptoKey;
++export const CryptoKey = globalThis.CryptoKey;
