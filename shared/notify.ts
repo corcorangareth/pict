@@ -28,12 +28,14 @@ export async function runNotifySweep(env: Env, opts?: { today?: string }): Promi
   const releases: string[] = [];
 
   // 1. TV episodes airing today, not yet notified, for notifiable entries.
+  // Any non-abandoned entry counts — a completed-but-still-airing show (you're
+  // caught up, a new season is coming) should still alert on new episodes.
   const epRows = await env.DB.prepare(
     `SELECT ep.id AS episode_id, ep.title_id, ep.season, ep.number, t.name AS title_name, t.networks,
-            (SELECT e.id FROM entries e WHERE e.title_id = t.id AND e.state IN ('saved','watching') AND e.notify = 1 ORDER BY e.id LIMIT 1) AS entry_id
+            (SELECT e.id FROM entries e WHERE e.title_id = t.id AND e.state != 'abandoned' AND e.notify = 1 ORDER BY e.id LIMIT 1) AS entry_id
        FROM episodes ep JOIN titles t ON t.id = ep.title_id
       WHERE ep.air_date = ?1 AND ep.notified_at IS NULL
-        AND EXISTS (SELECT 1 FROM entries e WHERE e.title_id = t.id AND e.state IN ('saved','watching') AND e.notify = 1)`,
+        AND EXISTS (SELECT 1 FROM entries e WHERE e.title_id = t.id AND e.state != 'abandoned' AND e.notify = 1)`,
   )
     .bind(today)
     .all<Record<string, unknown>>();
