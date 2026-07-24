@@ -44,6 +44,25 @@ export interface CalendarItem {
   label: string;
 }
 
+export interface SuggestionItem {
+  tmdb_id: number;
+  media_type: MediaType;
+  audience: Audience;
+  name: string;
+  poster_path: string | null;
+  overview: string | null;
+  critic_score: number;
+  rt_score: number | null;
+  reason: string;
+  meta: { year: string | null; runtime_min: number | null; genres: string[] };
+}
+
+export interface AppSettings {
+  critic_threshold: number;
+  soft_prompt_seen: boolean;
+  updated_at: string;
+}
+
 export interface ProgressPayload {
   entryId: number;
   titleId: number;
@@ -111,4 +130,18 @@ export const api = {
   deleteEntry: (id: number) => req<{ ok: true }>(`/api/entries/${id}`, { method: "DELETE" }),
 
   testPush: () => req<{ sent: number; pruned: number }>("/api/push/test", { method: "POST" }),
+
+  getSuggestions: () =>
+    req<{ suggestions: SuggestionItem[]; generated_at: string | null }>("/api/suggestions"),
+
+  refreshSuggestions: () =>
+    req<{ suggestions: SuggestionItem[]; generated_at: string | null }>("/api/suggestions", { method: "POST" }),
+
+  getSettings: () => req<{ settings: AppSettings }>("/api/settings").then((d) => d.settings),
+
+  patchSettings: (patch: Partial<Pick<AppSettings, "critic_threshold" | "soft_prompt_seen">>) =>
+    req<{ settings: AppSettings }>("/api/settings", {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    }).then((d) => d.settings),
 };

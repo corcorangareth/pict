@@ -197,7 +197,7 @@ export default function App() {
               onOpenHistory={() => setTab("me")}
             />
           )}
-          {tab === "discover" && <Discover />}
+          {tab === "discover" && <Discover media={media} onLibraryChanged={bumpLibrary} />}
           {tab === "cal" && <Calendar version={libraryVersion} media={media} onOpen={openTitle} />}
           {tab === "me" && <Settings version={libraryVersion} media={media} onOpen={openDetail} />}
         </main>
