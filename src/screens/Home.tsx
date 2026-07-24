@@ -7,7 +7,7 @@ import { SavedCard } from "@/components/SavedCard";
 import { Heading } from "@/components/Heading";
 import { AudienceFilter, type AudienceFilterValue } from "@/components/AudienceFilter";
 import { useLibrary } from "@/hooks/useLibrary";
-import { daysUntil } from "@/lib/countdown";
+import { buildHero, spotlightFor } from "@/lib/spotlight";
 import type { LibraryItem } from "@/lib/api";
 import type { Palette, MediaType } from "@/types";
 
@@ -35,32 +35,28 @@ export function Home({
     [items, media, audience],
   );
 
-  // Coming Up = anything with a genuinely upcoming episode/release you're still
-  // waiting on. Includes a *completed* TV show whose next season is coming (you're
-  // caught up and waiting for more). Excludes abandoned titles, and completed
-  // films (you've watched it — a future streaming date is just noise).
-  const comingUp = useMemo(
-    () =>
-      filtered
-        .filter(
-          (i) =>
-            i.upcoming &&
-            i.entry.state !== "abandoned" &&
-            !(i.entry.state === "completed" && i.title.media_type === "movie"),
-        )
-        .sort((a, b) => daysUntil(a.upcoming!.date) - daysUntil(b.upcoming!.date)),
+  // Hero: ready-to-watch items first, then countdowns (see buildHero).
+  const hero = useMemo(() => buildHero(filtered, media), [filtered, media]);
+  // Keep going = in-progress TV with an aired, unwatched episode. A show you're
+  // caught up on (no such episode) or haven't started no longer shows here.
+  const keepGoing = useMemo(
+    () => filtered.filter((i) => i.title.media_type === "tv" && i.nextWatch && (i.progress?.watched ?? 0) > 0),
     [filtered],
   );
-  const keepGoing = useMemo(() => filtered.filter((i) => i.entry.state === "watching"), [filtered]);
-  const saved = useMemo(() => filtered.filter((i) => i.entry.state === "saved"), [filtered]);
+  // Saved grid: saved items that aren't already featured in the hero.
+  const saved = useMemo(
+    () => filtered.filter((i) => i.entry.state === "saved" && !spotlightFor(i, media)),
+    [filtered, media],
+  );
 
   // Focused palette drives the ambient wash. Re-focus when the filter changes.
   useEffect(() => {
-    const focus: LibraryItem | undefined = comingUp[0] ?? keepGoing[0] ?? saved[0] ?? filtered[0];
+    const focus: LibraryItem | undefined = hero[0]?.item ?? keepGoing[0] ?? saved[0] ?? filtered[0];
     onMood(focus?.title.art_palette ?? null);
-  }, [comingUp, keepGoing, saved, filtered, onMood]);
+  }, [hero, keepGoing, saved, filtered, onMood]);
 
   const total = filtered.length;
+  const nothingActive = hero.length + keepGoing.length + saved.length === 0;
 
   return (
     <div style={{ paddingBottom: 140 }}>
@@ -76,9 +72,17 @@ export function Home({
         />
       )}
 
-      {comingUp.length > 0 && (
+      {items !== null && total > 0 && nothingActive && (
+        <EmptyState
+          title="You're all caught up"
+          body={media === "tv" ? "Nothing to watch right now — new episodes will appear here." : "Everything's watched. Add more films to your list."}
+          icon={<Sparkles size={22} color="var(--ink-faint)" style={{ margin: "0 auto" }} />}
+        />
+      )}
+
+      {hero.length > 0 && (
         <div className="rise" style={{ animationDelay: "0.1s" }}>
-          <Hero items={comingUp} onFocus={(i) => onMood(i.title.art_palette)} onOpen={onOpen} />
+          <Hero entries={hero} onFocus={(i) => onMood(i.title.art_palette)} onOpen={onOpen} />
         </div>
       )}
 
