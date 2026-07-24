@@ -134,6 +134,20 @@ function extractProviders(wp: any): string[] {
   return ie.flatrate.map((p: any) => p.provider_name);
 }
 
+// Current IE flatrate (subscription) providers for a title — used by the cron to
+// detect when a film first lands on streaming.
+export async function getWatchProviders(env: Env, tmdbId: number, mediaType: MediaType): Promise<string[]> {
+  if (isMockMode(env)) {
+    try {
+      return mockDetail(tmdbId, mediaType).providers;
+    } catch {
+      return [];
+    }
+  }
+  const d = await tmdb<any>(env, `/${mediaType}/${tmdbId}/watch/providers`);
+  return extractProviders(d);
+}
+
 async function fetchEpisodes(env: Env, tvId: number, seasons: any[]): Promise<TmdbEpisode[]> {
   const out: TmdbEpisode[] = [];
   for (const s of seasons) {

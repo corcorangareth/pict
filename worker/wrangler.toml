@@ -1,0 +1,20 @@
+name = "pict-cron"
+main = "src/index.ts"
+compatibility_date = "2025-01-10"
+compatibility_flags = ["nodejs_compat"]
+
+# 10:00 Europe/Dublin year-round. Cloudflare cron is UTC, and Ireland is UTC+1
+# (IST, summer) or UTC+0 (GMT, winter), so 10:00 local is 09:00 or 10:00 UTC.
+# Both fire; scheduled() bails unless the Dublin hour is exactly 10.
+[triggers]
+crons = ["0 9 * * *", "0 10 * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "pict"
+database_id = "6462b3f3-a3b6-497f-b43a-bd3850e7d91f"
+
+[vars]
+TMDB_REGION = "IE"
+VAPID_SUBJECT = "mailto:corcorangareth@gmail.com"
+VAPID_PUBLIC_KEY = "BIBuwXYUemWgIl8HoqI3XmZDRufBmoPOMs_T8bVA1Z7uQOb56NuENeRqPlEpCB4W7e_uXTzoBP1ltS9nAE8BOgA"
