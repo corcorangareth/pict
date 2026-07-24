@@ -21,10 +21,95 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-// --- Phase 5 seam: push + notificationclick ---------------------------------
-// self.addEventListener("push", (event) => { ... });
-// self.addEventListener("notificationclick", (event) => {
-//   // branch on event.action: "watched" | "snooze" | "not-yet" | default
-// });
+// --- Push: show the notification the cron/test endpoint sent (BUILD.md §6.6) --
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+  let p: PushPayload;
+  try {
+    p = event.data.json();
+  } catch {
+    p = { title: "Pict" };
+  }
+  const options: NotificationOptions & { actions?: { action: string; title: string }[] } = {
+    body: p.body,
+    tag: p.tag,
+    data: p.data ?? {},
+    actions: p.actions ?? [],
+    icon: "/icons/icon-192.png",
+    badge: "/icons/icon-192.png",
+  };
+  event.waitUntil(self.registration.showNotification(p.title ?? "Pict", options));
+});
+
+// --- notificationclick: act in place, don't force a window open --------------
+self.addEventListener("notificationclick", (event) => {
+  const action = event.action;
+  const data = (event.notification.data ?? {}) as NotifData;
+  event.notification.close();
+
+  if (action === "watched") {
+    event.waitUntil(markWatched(data));
+  } else if (action === "snooze" || action === "not-yet") {
+    // Dismiss. (Snooze re-fires from the next cron run — a v1 simplification.)
+  } else {
+    event.waitUntil(openApp(data.deepLink ?? "/"));
+  }
+});
+
+interface PushPayload {
+  title?: string;
+  body?: string;
+  tag?: string;
+  data?: Record<string, unknown>;
+  actions?: { action: string; title: string }[];
+}
+
+interface NotifData {
+  kind?: "tv" | "movie";
+  entryId?: number;
+  titleId?: number;
+  season?: number;
+  episode?: number;
+  titleName?: string;
+  deepLink?: string;
+}
+
+// Mark watched straight from the notification — POST and confirm, no window.
+// The auth cookie rides along on the same-origin fetch.
+async function markWatched(data: NotifData): Promise<void> {
+  const body =
+    data.kind === "tv"
+      ? { entryId: data.entryId, titleId: data.titleId, season: data.season, episode: data.episode, watched: true }
+      : { entryId: data.entryId, titleId: data.titleId, watched: true };
+  try {
+    const res = await fetch("/api/progress", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (res.ok) {
+      await self.registration.showNotification("Marked watched", {
+        body: data.titleName,
+        tag: `confirm-${data.titleId ?? Date.now()}`,
+        silent: true,
+      });
+    }
+  } catch {
+    // Phase 8: queue in IndexedDB and replay when back online.
+  }
+}
+
+async function openApp(url: string): Promise<void> {
+  const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+  for (const client of clients) {
+    const wc = client as WindowClient;
+    if (wc.focus) {
+      await wc.navigate?.(url);
+      await wc.focus();
+      return;
+    }
+  }
+  await self.clients.openWindow(url);
+}
 
 export {};

@@ -108,4 +108,6 @@ export const api = {
     req<{ entry: Entry }>(`/api/entries/${id}`, { method: "PATCH", body: JSON.stringify(patch) }),
 
   deleteEntry: (id: number) => req<{ ok: true }>(`/api/entries/${id}`, { method: "DELETE" }),
+
+  testPush: () => req<{ sent: number; pruned: number }>("/api/push/test", { method: "POST" }),
 };

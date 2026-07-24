@@ -5,7 +5,9 @@ import { Slats } from "@/components/brand/Slats";
 import { TabBar } from "@/components/TabBar";
 import { AddSheet } from "@/components/AddSheet";
 import { MediaToggle } from "@/components/MediaToggle";
+import { SoftPushPrompt } from "@/components/SoftPushPrompt";
 import { Ambience } from "@/components/Ambience";
+import { enablePush, permissionState, pushSupported } from "@/lib/push";
 import { TitleDetail } from "@/screens/TitleDetail";
 import { Lock } from "@/screens/Lock";
 import { Home } from "@/screens/Home";
@@ -85,6 +87,15 @@ export default function App() {
     localStorage.setItem("pict-build", BUILD_ID);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // First-add soft prompt for notifications (never auto-triggers the browser
+  // permission — only the card's opt-in does).
+  const [softPrompt, setSoftPrompt] = useState(false);
+  const maybePromptPush = () => {
+    if (localStorage.getItem("pict-push-asked")) return;
+    if (!pushSupported() || permissionState() !== "default") return;
+    setSoftPrompt(true);
+  };
 
   // Password gate: null = checking, false = locked, true = unlocked.
   const [authed, setAuthed] = useState<boolean | null>(null);
@@ -177,7 +188,14 @@ export default function App() {
       {addOpen && (
         <AddSheet
           onClose={closeOverlay}
-          onAdded={(name) => { bumpLibrary(); showToast(`Added ${name} to your list`); }}
+          onAdded={(name) => { bumpLibrary(); showToast(`Added ${name} to your list`); maybePromptPush(); }}
+        />
+      )}
+
+      {softPrompt && (
+        <SoftPushPrompt
+          onEnable={() => { localStorage.setItem("pict-push-asked", "1"); setSoftPrompt(false); void enablePush(); }}
+          onDismiss={() => { localStorage.setItem("pict-push-asked", "1"); setSoftPrompt(false); }}
         />
       )}
 

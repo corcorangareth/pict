@@ -1,17 +1,34 @@
-import { useMemo } from "react";
-import { Check } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Check, Bell, BellOff, Loader2 } from "lucide-react";
 import { Slats } from "@/components/brand/Slats";
 import { SavedCard } from "@/components/SavedCard";
 import { EmptyState } from "@/components/EmptyState";
 import { useLibrary } from "@/hooks/useLibrary";
+import { usePush } from "@/hooks/usePush";
+import { api, type LibraryItem } from "@/lib/api";
 import { BUILD_ID } from "@/lib/pwa";
-import type { LibraryItem } from "@/lib/api";
 import type { MediaType } from "@/types";
 
 // The "Me" tab: your watch history (completed titles that no longer surface on
 // Home) plus app info. Respects the global Shows/Movies toggle.
 export function Settings({ version, media, onOpen }: { version: number; media: MediaType; onOpen: (i: LibraryItem) => void }) {
   const { items } = useLibrary(version);
+  const push = usePush();
+  const [testing, setTesting] = useState(false);
+  const [testMsg, setTestMsg] = useState<string | null>(null);
+
+  async function sendTest() {
+    setTesting(true);
+    setTestMsg(null);
+    try {
+      const r = await api.testPush();
+      setTestMsg(r.sent > 0 ? "Test sent — check your notifications." : "No devices subscribed.");
+    } catch {
+      setTestMsg("Couldn't send the test.");
+    } finally {
+      setTesting(false);
+    }
+  }
 
   const watched = useMemo(
     () =>
@@ -50,8 +67,48 @@ export function Settings({ version, media, onOpen }: { version: number; media: M
         </div>
       )}
 
+      {/* Notifications */}
+      <div style={{ marginTop: 40, paddingTop: 22, borderTop: "1px solid var(--line)" }}>
+        <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-faint)", marginBottom: 12 }}>
+          Notifications
+        </p>
+        <button
+          type="button"
+          onClick={push.toggle}
+          disabled={!push.supported || push.busy || push.denied}
+          className="press"
+          style={{
+            width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "14px 16px", borderRadius: 16, background: "rgba(21,20,15,0.045)",
+            opacity: push.supported && !push.denied ? 1 : 0.6,
+          }}
+        >
+          <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {push.enabled ? <Bell size={17} color="var(--brand)" /> : <BellOff size={17} color="var(--ink-faint)" />}
+            <span style={{ fontSize: 15, fontWeight: 500, color: "var(--ink)" }}>Push notifications</span>
+          </span>
+          {push.busy ? (
+            <Loader2 size={18} color="var(--ink-faint)" className="spin" />
+          ) : (
+            <span aria-hidden style={{ width: 42, height: 25, borderRadius: 99, padding: 3, background: push.enabled ? "var(--brand)" : "rgba(21,20,15,0.15)", display: "flex", justifyContent: push.enabled ? "flex-end" : "flex-start", transition: "background 200ms var(--ease)" }}>
+              <span style={{ width: 19, height: 19, borderRadius: "50%", background: "#fff" }} />
+            </span>
+          )}
+        </button>
+
+        {push.enabled && (
+          <button type="button" onClick={sendTest} disabled={testing} className="press" style={{ marginTop: 10, fontSize: 13.5, fontWeight: 600, color: "var(--brand)", display: "flex", alignItems: "center", gap: 6 }}>
+            {testing && <Loader2 size={14} className="spin" />}
+            Send a test notification
+          </button>
+        )}
+        {testMsg && <p style={{ fontSize: 13, color: "var(--ink-faint)", marginTop: 8 }}>{testMsg}</p>}
+        {push.denied && <p style={{ fontSize: 13, color: "var(--ink-faint)", marginTop: 8 }}>Blocked in your browser settings — re-allow notifications there to turn this on.</p>}
+        {!push.supported && <p style={{ fontSize: 13, color: "var(--ink-faint)", marginTop: 8 }}>This browser doesn't support notifications.</p>}
+      </div>
+
       {/* App info footer */}
-      <div style={{ marginTop: 40, paddingTop: 22, borderTop: "1px solid var(--line)", display: "flex", alignItems: "center", gap: 12 }}>
+      <div style={{ marginTop: 32, paddingTop: 22, borderTop: "1px solid var(--line)", display: "flex", alignItems: "center", gap: 12 }}>
         <div style={{ width: 44, height: 44, borderRadius: 12, background: "var(--brand)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <Slats size={26} color="var(--paper)" />
         </div>
