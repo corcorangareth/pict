@@ -106,6 +106,26 @@ export default function App() {
     return () => window.removeEventListener("pict:locked", onLocked);
   }, []);
 
+  // Complete a "Mark watched" opened from a notification (the SW's fallback when
+  // its background write didn't go through). Runs in the signed-in page context.
+  useEffect(() => {
+    if (authed !== true) return;
+    const params = new URLSearchParams(window.location.search);
+    const mw = params.get("mw");
+    if (!mw) return;
+    window.history.replaceState({}, "", window.location.pathname);
+    try {
+      const body = JSON.parse(atob(decodeURIComponent(mw)));
+      api
+        .markProgress(body)
+        .then(() => { bumpLibrary(); showToast("Marked watched"); })
+        .catch(() => showToast("Couldn't mark watched"));
+    } catch {
+      /* malformed link — ignore */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authed]);
+
   // While checking the session, render nothing (avoids a flash of the app or
   // the lock screen). Locked → the unlock gate. Unlocked → the app.
   if (authed === null) return <div style={{ minHeight: "100dvh", background: "var(--paper)" }} />;

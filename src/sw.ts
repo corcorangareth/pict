@@ -94,14 +94,14 @@ async function markWatched(data: NotifData): Promise<void> {
     });
     if (res.ok) {
       await notify("Marked watched", data.titleName);
-    } else {
-      // Surface the failure so it isn't silent (auth = 401, etc.).
-      await notify("Couldn't mark watched", `Error ${res.status} — open the app to update it.`);
+      return;
     }
   } catch {
-    // Offline or blocked — a proper retry queue lands in Phase 8.
-    await notify("Couldn't mark watched", "You appear to be offline — try in the app.");
+    // fall through to the open-the-app fallback
   }
+  // Background write didn't take (auth/offline). Open the app to finish it in the
+  // signed-in page context, where the session cookie is always present.
+  await openApp(`/?mw=${encodeURIComponent(btoa(JSON.stringify(body)))}`);
 }
 
 function notify(title: string, message?: string): Promise<void> {
