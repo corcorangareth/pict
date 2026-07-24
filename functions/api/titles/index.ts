@@ -19,7 +19,7 @@ const json = (body: unknown, status = 200) =>
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const { DB } = context.env;
   const rows = await DB.prepare(
-    `SELECT e.id AS entry_id, e.audience, e.state, e.notify, e.added_at, e.updated_at,
+    `SELECT e.id AS entry_id, e.audience, e.state, e.notify, e.added_at, e.updated_at, e.caught_up_at,
             t.*,
             (SELECT COUNT(*) FROM episodes ep WHERE ep.title_id = t.id) AS ep_total,
             (SELECT COUNT(*) FROM episodes ep WHERE ep.title_id = t.id AND ep.watched_at IS NOT NULL) AS ep_watched,
@@ -168,5 +168,6 @@ function mapLibraryRow(r: Record<string, unknown>) {
     upcoming,
     nextWatch,
     where: network,
+    wasCaughtUp: !!r.caught_up_at,
   };
 }

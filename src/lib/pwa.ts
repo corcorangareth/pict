@@ -5,14 +5,20 @@ export const BUILD_ID: string = __BUILD_ID__;
 
 let applyFn: ((reload?: boolean) => Promise<void>) | null = null;
 
-// Register the service worker and wire update detection. When a new version is
-// waiting, dispatch a window event the UI listens for to show the update banner.
+// Register the service worker. It auto-updates (skipWaiting), so a new version
+// activates on its own; we reload once when it takes control so the fixed code
+// (including the notification handler) is live without any manual step.
 export function registerPwa(): void {
+  if ("serviceWorker" in navigator) {
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (reloaded) return;
+      reloaded = true;
+      window.location.reload();
+    });
+  }
   applyFn = registerSW({
     immediate: true,
-    onNeedRefresh() {
-      window.dispatchEvent(new Event("pwa:need-refresh"));
-    },
     onRegisteredSW(_url, reg) {
       // Long-open PWAs won't navigate, so poll for a new version hourly.
       if (reg) setInterval(() => void reg.update(), 60 * 60 * 1000);

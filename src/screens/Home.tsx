@@ -37,10 +37,14 @@ export function Home({
 
   // Hero: ready-to-watch items first, then countdowns (see buildHero).
   const hero = useMemo(() => buildHero(filtered, media), [filtered, media]);
-  // Keep going = in-progress TV with an aired, unwatched episode. A show you're
-  // caught up on (no such episode) or haven't started no longer shows here.
+  // Keep going = in-progress TV you're working through but have never caught up
+  // on. Once you've been up to date, a new episode is featured in the hero
+  // instead; a caught-up show (no unwatched episode) drops out entirely.
   const keepGoing = useMemo(
-    () => filtered.filter((i) => i.title.media_type === "tv" && i.nextWatch && (i.progress?.watched ?? 0) > 0),
+    () =>
+      filtered.filter(
+        (i) => i.title.media_type === "tv" && i.nextWatch && (i.progress?.watched ?? 0) > 0 && !i.wasCaughtUp,
+      ),
     [filtered],
   );
   // Saved grid: saved items that aren't already featured in the hero.

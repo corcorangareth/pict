@@ -16,6 +16,7 @@ export interface LibraryItem {
   upcoming: { date: string; label: string; where: string | null } | null;
   nextWatch: { season: number; number: number; name: string | null } | null;
   where: string | null;
+  wasCaughtUp: boolean;
 }
 
 export interface Season {

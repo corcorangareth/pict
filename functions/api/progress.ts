@@ -62,6 +62,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   // Recompute the entry state.
   let entryState: string;
+  let becameCaughtUp = false;
   if (isTv) {
     const c = await DB.prepare(
       `SELECT
@@ -75,6 +76,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       .first<{ total: number; watched: number; aired: number; watched_aired: number }>();
     const total = c?.total ?? 0, w = c?.watched ?? 0, aired = c?.aired ?? 0, wa = c?.watched_aired ?? 0;
     const caughtUp = aired > 0 && wa === aired;
+    becameCaughtUp = caughtUp;
     const hasFuture = total > aired;
     // completed only when the show has fully aired and every episode is watched;
     // caught up on an airing show stays "watching" (waiting for more).
@@ -87,9 +89,16 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     updated = 1;
   }
 
-  await DB.prepare("UPDATE entries SET state = ?1, updated_at = ?2 WHERE id = ?3")
-    .bind(entryState, new Date().toISOString(), entryId)
-    .run();
+  const ts = new Date().toISOString();
+  // Record the first time an entry reaches "up to date" — never cleared, so the
+  // hero can distinguish "was caught up, new episode" from "still catching up".
+  if (becameCaughtUp) {
+    await DB.prepare("UPDATE entries SET state = ?1, updated_at = ?2, caught_up_at = COALESCE(caught_up_at, ?2) WHERE id = ?3")
+      .bind(entryState, ts, entryId)
+      .run();
+  } else {
+    await DB.prepare("UPDATE entries SET state = ?1, updated_at = ?2 WHERE id = ?3").bind(entryState, ts, entryId).run();
+  }
 
   return json({ updated, entryState });
 };

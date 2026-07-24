@@ -19,10 +19,12 @@ export function spotlightFor(item: LibraryItem, media: MediaType): Spotlight | n
   if (item.entry.state === "abandoned") return null;
 
   if (media === "tv") {
-    const watched = item.progress?.watched ?? 0;
-    // In progress with a newly-aired, unwatched episode → top priority.
-    if (item.nextWatch && watched > 0) {
-      return { kind: "ready", primary: "New episode", label: `Season ${item.nextWatch.season}, Episode ${item.nextWatch.number}` };
+    // A new episode is featured only if you've been up to date before — otherwise
+    // you're still working through a backlog and it belongs in Keep Going.
+    if (item.nextWatch) {
+      return item.wasCaughtUp
+        ? { kind: "ready", primary: "New episode", label: `Season ${item.nextWatch.season}, Episode ${item.nextWatch.number}` }
+        : null;
     }
     // Caught up (or a premiere on the way), waiting for the next drop.
     if (item.upcoming) {
